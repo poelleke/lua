@@ -18,7 +18,6 @@
     - Powerburst
     - Familiar
     - Soul Rune
-    - Law Rune
     - outer ring navigation and skill lvl req:
       - Chopping away the tendrils using a hatchet with 30 Woodcutting
       - Chopping away the tendrils using a hatchet with 30 Woodcutting
@@ -102,6 +101,12 @@ local aioOptions = {
         AREAID = { x = 2400, y = 4835, z = 0 }
     },
     {
+        label = "Law rune",
+        ALTARIDID = 2485,
+        PORTALID = 7135,
+        AREAID = { x =2464, y = 4819, z = 0 }
+    },
+    {
         label = "Death rune",
         ALTARIDID = 2488,
         PORTALID = 7136,
@@ -124,13 +129,7 @@ local TELEPORTS      = {
 }
 
 local ID             = {
-    CRAFTING_ANIMATION = 23250,
-    WILDY_SWORD = { 37904, 37905, 37906, 37907, 41376, 41377 },
-    POUCHE = { 5509, 5510, 5512, 5514, 24205 },
-    WILDY_WALL = { 65076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443},
-    BANK = { 42377, 42378 },
     BANK_NPC = 2759,
-    ESSENCE = {7936,18178},
     MAGE = 2257,
 }
 
