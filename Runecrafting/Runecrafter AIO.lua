@@ -3,7 +3,7 @@
     Description: Crafting runes through Abyssal dimension.
 
     Author: Valtrex
-    Version: 1.0
+    Version: 1.2
     Release Date: 02-04-2024
 
     Release Notes:
