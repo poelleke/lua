@@ -649,36 +649,41 @@ local function Walk()
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
             API.RandomSleep2(500, 650, 500)
             API.WaitUntilMovingandAnimEnds()
-        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.GAP },50) then
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.GAP },10) then
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
             API.RandomSleep2(500, 650, 500)
             API.WaitUntilMovingandAnimEnds() 
-        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.TENDRILS },50) and API.XPLevelTable(API.GetSkillXP("WOODCUTTING")) >= 30 then 
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.TENDRILS },10) and API.XPLevelTable(API.GetSkillXP("WOODCUTTING")) >= 30 then 
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
             API.RandomSleep2(500, 650, 500)
             API.WaitUntilMovingandAnimEnds() 
-        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.ROCK },50) and API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 then   
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.ROCK },10) and API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 then   
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
             API.RandomSleep2(500, 650, 500)
             API.WaitUntilMovingandAnimEnds() 
-        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.EYES },50) and API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 then  
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.EYES },10) and API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 then  
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
             API.RandomSleep2(500, 650, 500)
             API.WaitUntilMovingandAnimEnds()   
-        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.PASSAGE },50) and API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 then  
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.PASSAGE },10) and API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 then  
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,0,{ selectedPortal },50);
             API.RandomSleep2(500, 650, 500)
             API.WaitUntilMovingandAnimEnds() 
-        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.BOIL },50) and API.XPLevelTable(API.GetSkillXP("FIREMAKING")) >= 30 then
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.BOIL },10) and API.XPLevelTable(API.GetSkillXP("FIREMAKING")) >= 30 then
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
             API.RandomSleep2(500, 650, 500)
             API.WaitUntilMovingandAnimEnds() 
+        else
+            teleportToEdgeville()
+            API.RandomSleep2(500, 650, 500)
+            API.Write_LoopyLoop(false)
+            print("CANT FIND A WAY TO ENTER THE INNER CIRCLE!")
         end
     elseif needNexusMod and isAtLocation(AREA.ABBY, 15) then
         API.RandomSleep2(500, 650, 500)
