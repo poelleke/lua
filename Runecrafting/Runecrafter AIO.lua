@@ -3,8 +3,8 @@
     Description: Crafting runes through Abyssal dimension.
 
     Author: Valtrex
-    Version: 1.2
     Release Date: 02-04-2024
+    Version: 1.3
 
     Release Notes:
     - Version 1.0 : Initial release
@@ -13,6 +13,7 @@
       - 12035 = Abyssal parasite
       - 12037 = Abyssal lurker
       - 12796 = Abyssal titan
+    - Version 1.3 : outer ring support
 
     You will need:
     - wildy sword on abilitybar or edgevillage lodestone on abilitybar for teleporting back to the bank.
@@ -20,13 +21,19 @@
     - Nexus Mod relic power
     - bank uses: "load last preset"
 
+    TODO:
+    - choose Familiar from a dropdown
+    - Soul Altar
+    - demonic skull (protection against getting PKed)
+    - More safty checks.
+
 ]]
 
 local API = require("api")
 
 local skill          = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version        = "1.2"
+local version        = "1.3"
 local selectedAltar  = nil
 local selectedPortal = nil
 local selectedArea   = nil
@@ -161,6 +168,12 @@ local ID             = {
     MAGE = 2257,
     ALTAR_OF_WAR = 114748,
     SMALL_OBELISK = 29954,
+    TENDRILS = 7161,
+    PASSAGE = 7154,
+    ROCK = 7158,
+    EYES = 7168,
+    GAP = 7164,
+    BOIL = 7165,
 }
 
 local AREA           = {
@@ -212,14 +225,14 @@ local function setupOptions()
 
     tickNexusMod = API.CreateIG_answer();
     tickNexusMod.box_ticked = true
-    tickNexusMod.box_name = "Nexus Mod relic power"
+    tickNexusMod.box_name = "Nexus Mod relic"
     tickNexusMod.box_start = FFPOINT.new(5, 80, 0);
     tickNexusMod.colour = ImColor.new(0, 255, 0);
     tickNexusMod.tooltip_text = "Arrive at the centre of the Abyss when entering."
 
     tickPouchProtector = API.CreateIG_answer();
     tickPouchProtector.box_ticked = true
-    tickPouchProtector.box_name = "Pouch Protector"
+    tickPouchProtector.box_name = "Pouch Protector relic"
     tickPouchProtector.box_start = FFPOINT.new(5, 100, 0);
     tickPouchProtector.colour = ImColor.new(0, 255, 0);
     tickPouchProtector.tooltip_text = "Runecrafting pouches will no longer degrade when used"
@@ -475,6 +488,20 @@ local function checkForVanishesMessage()
     return false
 end
 
+local function checkForswordMessage()
+    local chatTexts = ChatGetMessages()
+    if chatTexts then
+        for k, v in pairs(chatTexts) do
+            if k > 2 then break end
+            if string.find(v.text, "The effects of your Wilderness sword teleport you closer to the abyssal rift.") then
+                print("A shortcut it taken")
+                return true
+            end          
+        end
+    end
+    return false
+end
+
 local function RenewFamiliar(pouch) 
     if fail > 3 then 
         API.logError("couldn't renew familiar")
@@ -498,14 +525,14 @@ local function RenewFamiliar(pouch)
 
     if API.BankOpen2() then 
         if API.Invfreecount_() < 2 then
-            API.KeyboardPress2(0x33,0,50)
+            API.KeyboardPress2(0x33,0,50) -- deposit all
             API.RandomSleep2(1000, 500, 1000)
         end
 
         API.DoAction_Bank(12796, 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(1000, 500, 1000)
 
-        API.KeyboardPress2(0x1B, 50, 150)
+        API.KeyboardPress2(0x1B, 50, 150) -- close bank
         API.RandomSleep2(1000, 500, 1000)
     end
 
@@ -556,6 +583,12 @@ local function invCheck()
         local PouchCheck = not PouchProtector
         check(PouchCheck, "It's recomended to use the Pouch Protector relic, the scrips does not repair it for you!")
     end
+
+    -- Level checks
+    
+    local hasRequiredLevel = API.XPLevelTable(API.GetSkillXP("WOODCUTTING")) >= 30 or API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 or API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 or API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 or API.XPLevelTable(API.GetSkillXP("FIREMAKING")) >= 30
+    check(hasRequiredLevel, "You need at least Level 30 in Woodcuting, Mining, Thieving, Agility or Firemaking")
+    
     -- Action bar checks
     if UseFamiliar then
         local warCheck = API.GetABs_name1("War's Retreat Teleport").enabled
@@ -571,15 +604,18 @@ local function invCheck()
 end
 ---------------------CHECKS---------------------
 --------------------MAIN CODE-------------------
-local function Walk()        
+local function familiar()
+    if UseFamiliar then
+        if not hasfamiliar() or checkForVanishesMessage() then
+            RenewFamiliar() 
+        end
+    end 
+end
+
+local function Walk()  
     if isAtLocation(AREA.EDGEVILLE_LODESTONE, 10) or  isAtLocation(AREA.EDGEVILLE_BANK, 10) or  isAtLocation(AREA.EDGEVILLE, 10) then
         API.RandomSleep2(2500, 150, 150)
-        API.WaitUntilMovingandAnimEnds()
-        if UseFamiliar then
-            if not hasfamiliar() or checkForVanishesMessage() then
-                RenewFamiliar() 
-            end
-        end
+        API.WaitUntilMovingandAnimEnds()        
         if API.InvFull_() and invContains(ID.ESSENCE) then
             if p.y < 3521 then
                 API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
@@ -606,8 +642,45 @@ local function Walk()
         if API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route, { ID.MAGE }, 50) then
             API.RandomSleep2(500, 650, 500)
             API.WaitUntilMovingandAnimEnds()
-        end        
-    elseif isAtLocation(AREA.ABBY, 15) then
+        end
+    elseif not needNexusMod and isAtLocation(AREA.ABBY, 50) then 
+        if checkForswordMessage() then
+            API.RandomSleep2(500, 650, 500)
+            API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
+            API.RandomSleep2(500, 650, 500)
+            API.WaitUntilMovingandAnimEnds()
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.GAP },10) then
+            API.RandomSleep2(8000, 1000, 1500)
+            API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
+            API.RandomSleep2(500, 650, 500)
+            API.WaitUntilMovingandAnimEnds() 
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.TENDRILS },10) and API.XPLevelTable(API.GetSkillXP("WOODCUTTING")) >= 30 then 
+            API.RandomSleep2(8000, 1000, 1500)
+            API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
+            API.RandomSleep2(500, 650, 500)
+            API.WaitUntilMovingandAnimEnds() 
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.ROCK },10) and API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 then   
+            API.RandomSleep2(8000, 1000, 1500)
+            API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
+            API.RandomSleep2(500, 650, 500)
+            API.WaitUntilMovingandAnimEnds() 
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.EYES },10) and API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 then  
+            API.RandomSleep2(8000, 1000, 1500)
+            API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
+            API.RandomSleep2(500, 650, 500)
+            API.WaitUntilMovingandAnimEnds()   
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.PASSAGE },10) and API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 then  
+            API.RandomSleep2(8000, 1000, 1500)
+            API.DoAction_Object1(0x29,0,{ selectedPortal },50);
+            API.RandomSleep2(500, 650, 500)
+            API.WaitUntilMovingandAnimEnds() 
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.BOIL },10) and API.XPLevelTable(API.GetSkillXP("FIREMAKING")) >= 30 then
+            API.RandomSleep2(8000, 1000, 1500)
+            API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
+            API.RandomSleep2(500, 650, 500)
+            API.WaitUntilMovingandAnimEnds() 
+        end
+    elseif needNexusMod and isAtLocation(AREA.ABBY, 15) then
         API.RandomSleep2(500, 650, 500)
         API.DoAction_Object1(0x29,0,{ selectedPortal },50);
         API.RandomSleep2(500, 650, 500)
@@ -618,7 +691,7 @@ local function Walk()
                 return API.DoAction_Inventory2({ 49069, 49067, 49065, 49063 }, 0, 1, API.OFF_ACT_GeneralInterface_route)
             end
             API.RandomSleep2(250, 650, 500)
-            API.DoAction_Object1(0x42,0,{ selectedAltar },15);
+            API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15);
             API.RandomSleep2(250, 650, 500)
             API.WaitUntilMovingandAnimEnds()
             Trips = Trips + API.InvItemcount_1(selectedRune)
@@ -699,11 +772,6 @@ while API.Read_LoopyLoop() do
                 API.Write_LoopyLoop(false)
                 print("Please select a Rune type from the dropdown menu!")
             end
-            if not needNexusMod then
-                API.Write_LoopyLoop(false)
-                print("You need Nexus Mod relic to use this script.")
-                print("Outer ring is not working yet!.")
-            end
         end
         goto continue
     end    
@@ -728,7 +796,10 @@ while API.Read_LoopyLoop() do
     p = API.PlayerCoordfloat()
     idleCheck()
     API.DoRandomEvents()
-   
+
+    familiar()
+    API.RandomSleep2(500, 150, 150)
+    API.WaitUntilMovingandAnimEnds()
     Walk()
    
     API.RandomSleep2(500,500,500)
