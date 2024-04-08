@@ -3,26 +3,23 @@
     Description: Crafting runes through Abyssal dimension.
 
     Author: Valtrex
+    Version: 1.31
     Release Date: 02-04-2024
-    Version: 1.3
 
     Release Notes:
     - Version 1.0 : Initial release
     - Version 1.1 : Updated procesbar, added startup check and added Powerburst
-    - Version 1.2 : Added Summoning support! (change ID: 12796 for an other Familiar)
-      - 12035 = Abyssal parasite
-      - 12037 = Abyssal lurker
-      - 12796 = Abyssal titan
+    - Version 1.2 : Added Summoning support!
     - Version 1.3 : outer ring support
+    - Version 1.31 : support for al familiars choose them from a dropdown menu
 
     You will need:
     - wildy sword on abilitybar or edgevillage lodestone on abilitybar for teleporting back to the bank.
-    - War's Retreat Teleport on actionbar when using familiar
+    - War's Retreat Teleport on actionbar when using a familiar
     - Nexus Mod relic power
     - bank uses: "load last preset"
 
     TODO:
-    - choose Familiar from a dropdown
     - Soul Altar
     - demonic skull (protection against getting PKed)
     - More safty checks.
@@ -31,28 +28,29 @@
 
 local API = require("api")
 
-local skill          = "RUNECRAFTING"
+local skill             = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version        = "1.3"
-local selectedAltar  = nil
-local selectedPortal = nil
-local selectedArea   = nil
-local selectedRune   = nil
-local lastTile       = nil
-LOCATIONS            = nil
-local scriptPaused   = true
-local firstRun       = true
-local startTime, afk = os.time(), os.time()
+local version           = "1.31"
+local selectedAltar     = nil
+local selectedPortal    = nil
+local selectedArea      = nil
+local selectedRune      = nil
+local selectedFamiliar  = nil
+local SelectedAB        = nil
+local lastTile          = nil
+LOCATIONS               = nil
+local scriptPaused      = true
+local firstRun          = true
+local startTime, afk    = os.time(), os.time()
 local Trips = 0
 local Runes, fail = 0, 0
-local errors         = {}
+local errors            = {}
 local needNexusMod
 local PouchProtector
-local UseFamiliar
 local needDemonicSkull
 
-local aioSelect = API.CreateIG_answer()
-local aioOptions = {
+local aioSelectR = API.CreateIG_answer()
+local aioRune = {
     {
         label = "Air rune",
         ALTARIDID = 2478,
@@ -147,6 +145,25 @@ local aioOptions = {
     },--]]
 }
 
+local aioSelectF = API.CreateIG_answer()
+local aioFamiliar = {
+    {
+        name = "Abyssal parasite",
+        FAMILIARID = 12035,
+        ABNAME = API.GetABs_name1("Abyssal parasite pouch")
+    },
+    {
+        name = "Abyssal lurker",
+        FAMILIARID = 12037,
+        ABNAME = API.GetABs_name1("Abyssal lurker pouch")
+    },
+    {
+        name = "Abyssal titan",
+        FAMILIARID = 12796,
+        ABNAME = API.GetABs_name1("Abyssal titan pouch")
+    },
+}
+
 local LODESTONES     = {
     ["Edgeville"] = 16,
 }
@@ -157,13 +174,13 @@ local TELEPORTS      = {
 
 local ID             = {
     POWERBURST = { 49069, 49067, 49065, 49063 },
-    FAMILLIAR = { 12035, 12037, 12796 },
     CRAFTING_ANIMATION = 23250,
     WILDY_SWORD = { 37904, 37905, 37906, 37907, 41376, 41377 },
     POUCHE = { 5509, 5510, 5512, 5514, 24205 },
     WILDY_WALL = { 65076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443},
     BANK = { 42377, 42378 },
     BANK_NPC = 2759,
+    WAR_BANK = 114750,
     ESSENCE = {7936, 18178},
     MAGE = 2257,
     ALTAR_OF_WAR = 114748,
@@ -189,14 +206,14 @@ local AREA           = {
 local function setupOptions()
 
     btnStop = API.CreateIG_answer()
-    btnStop.box_start = FFPOINT.new(200, 125, 0)
+    btnStop.box_start = FFPOINT.new(230, 125, 0)
     btnStop.box_name = " STOP "
     btnStop.box_size = FFPOINT.new(90, 50, 0)
     btnStop.colour = ImColor.new(255, 255, 255)
     btnStop.string_value = "STOP"
 
     btnStart = API.CreateIG_answer()
-    btnStart.box_start = FFPOINT.new(90, 125, 0)
+    btnStart.box_start = FFPOINT.new(45, 125, 0)
     btnStart.box_name = " START "
     btnStart.box_size = FFPOINT.new(90, 50, 0)
     btnStart.colour = ImColor.new(0, 0, 255)
@@ -237,23 +254,44 @@ local function setupOptions()
     tickPouchProtector.colour = ImColor.new(0, 255, 0);
     tickPouchProtector.tooltip_text = "Runecrafting pouches will no longer degrade when used"
 
-    tickSummoning = API.CreateIG_answer();
-    tickSummoning.box_name = "Use a familiar"
-    tickSummoning.box_start = FFPOINT.new(200, 60, 0);
-    tickSummoning.colour = ImColor.new(0, 255, 0);
-    tickSummoning.tooltip_text = "Use this if you want to use a familiar."
+    aioSelectR.box_name = "###RUNE"
+    aioSelectR.box_start = FFPOINT.new(5, 30, 0)
+    aioSelectR.box_size = FFPOINT.new(240, 0, 0)
+    aioSelectR.stringsArr = { }
+    aioSelectR.tooltip_text = "Select an rune to craft."
     
+    table.insert(aioSelectR.stringsArr, "Select an Rune")
+    for i, v in ipairs(aioRune) do
+        table.insert(aioSelectR.stringsArr, v.label)
+    end
 
-    aioSelect.box_name = "AIO"
-    aioSelect.box_start = FFPOINT.new(50, 30, 0)
-    aioSelect.box_size = FFPOINT.new(250, 0, 0)
-    aioSelect.stringsArr = { }
-    aioSelect.tooltip_text =
-    "Select the rune to craft"
+    tickSkull = API.CreateIG_answer();
+    tickSkull.box_name = "Use Demonic skull"
+    tickSkull.box_start = FFPOINT.new(190, 60, 0);
+    tickSkull.colour = ImColor.new(0, 255, 0);
+    tickSkull.tooltip_text = "Use this for pvp Protection." 
+
+    tick01 = API.CreateIG_answer();
+    tick01.box_name = "Not in use"
+    tick01.box_start = FFPOINT.new(190, 80, 0);
+    tick01.colour = ImColor.new(0, 255, 0);
+    tick01.tooltip_text = "Not in use."   
     
-    table.insert(aioSelect.stringsArr, "Select an option")
-    for i, v in ipairs(aioOptions) do
-        table.insert(aioSelect.stringsArr, v.label)
+    tickEmpty = API.CreateIG_answer();
+    tickEmpty.box_name = "For Testing"
+    tickEmpty.box_start = FFPOINT.new(190, 100, 0);
+    tickEmpty.colour = ImColor.new(0, 255, 0);
+    tickEmpty.tooltip_text = "This is for testing."   
+
+    aioSelectF.box_name = "###FAMILIAR"
+    aioSelectF.box_start = FFPOINT.new(190, 30, 0)
+    aioSelectF.box_size = FFPOINT.new(240, 0, 0)
+    aioSelectF.stringsArr = { }
+    aioSelectF.tooltip_text = "Select an familiar to use."
+    
+    table.insert(aioSelectF.stringsArr, "Don't use Familiar")
+    for i, vf in ipairs(aioFamiliar) do
+        table.insert(aioSelectF.stringsArr, vf.name)
     end
 
     API.DrawSquareFilled(IG_Back)
@@ -263,8 +301,11 @@ local function setupOptions()
     API.DrawCheckbox(tickNexusMod)
     API.DrawCheckbox(tickJagexAcc)
     API.DrawCheckbox(tickPouchProtector)
-    API.DrawCheckbox(tickSummoning)
-    API.DrawComboBox(aioSelect, false)
+    API.DrawComboBox(aioSelectR, false)
+    --API.DrawCheckbox(tick01)
+    --API.DrawCheckbox(tickSkull)    
+    --API.DrawCheckbox(tickEmpty) 
+    API.DrawComboBox(aioSelectF, false)
 end
 
 local function round(val, decimal)
@@ -518,7 +559,7 @@ local function RenewFamiliar(pouch)
     end
     
     if not API.BankOpen2() then 
-        API.DoAction_Object1(0x2e, API.OFF_ACT_GeneralObject_route1, {114750}, 50)
+        API.DoAction_Object1(0x2e, API.OFF_ACT_GeneralObject_route1, {ID.WAR_BANK}, 50)
         API.RandomSleep2(1000, 500, 1000)
         API.WaitUntilMovingEnds()
     end
@@ -529,29 +570,47 @@ local function RenewFamiliar(pouch)
             API.RandomSleep2(1000, 500, 1000)
         end
 
-        API.DoAction_Bank(12796, 1, API.OFF_ACT_GeneralInterface_route)
+        API.DoAction_Bank(selectedFamiliar, 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(1000, 500, 1000)
 
         API.KeyboardPress2(0x1B, 50, 150) -- close bank
         API.RandomSleep2(1000, 500, 1000)
     end
 
-    if API.InvStackSize(12796) < 1 then
+    if API.InvStackSize(selectedFamiliar) < 1 then
         print("didn't find any pouches")
         fail = fail + 1
         return
     end
 
-    API.DoAction_Ability_Direct(API.GetABs_name1("Abyssal titan pouch"), 1, API.OFF_ACT_GeneralInterface_route)
+    if API.DoAction_Inventory2({ selectedFamiliar }, 0, 1, API.OFF_ACT_GeneralInterface_route) or API.DoAction_Ability_Direct(SelectedAB, 1, API.OFF_ACT_GeneralInterface_route) then
     API.RandomSleep2(600,100,300)
     API.WaitUntilMovingEnds()
     OpenInventoryIfNeeded()
+    end
 
     if API.CheckFamiliar() then 
         fail = 0
     end
 end
+
+local function familiar()
+    if SelectedAB then
+        if not hasfamiliar() or checkForVanishesMessage() then
+            RenewFamiliar() 
+        end
+    end 
+end
 --------------------SUMMONING-------------------
+-----------------------PVP----------------------
+local function hasTarget()
+    if API.GetInCombBit() then
+        print("getting attacked")
+        return true
+    end
+    return false
+end
+-----------------------PVP----------------------
 ---------------------CHECKS---------------------
 local function invContains(items)
     local loot = API.InvItemcount_2(items)
@@ -590,7 +649,7 @@ local function invCheck()
     check(hasRequiredLevel, "You need at least Level 30 in Woodcuting, Mining, Thieving, Agility or Firemaking")
     
     -- Action bar checks
-    if UseFamiliar then
+    if SelectedAB then
         local warCheck = API.GetABs_name1("War's Retreat Teleport").enabled
         check(warCheck, "You need to have War's Retreat Teleport on your action bar")
     end
@@ -604,14 +663,6 @@ local function invCheck()
 end
 ---------------------CHECKS---------------------
 --------------------MAIN CODE-------------------
-local function familiar()
-    if UseFamiliar then
-        if not hasfamiliar() or checkForVanishesMessage() then
-            RenewFamiliar() 
-        end
-    end 
-end
-
 local function Walk()  
     if isAtLocation(AREA.EDGEVILLE_LODESTONE, 10) or  isAtLocation(AREA.EDGEVILLE_BANK, 10) or  isAtLocation(AREA.EDGEVILLE, 10) then
         API.RandomSleep2(2500, 150, 150)
@@ -748,27 +799,40 @@ while API.Read_LoopyLoop() do
             btnStart.remove = true
             IG_Text.remove = true
             btnStop.remove = true
-            aioSelect.remove = true
             tickJagexAcc.remove = true
             tickNexusMod.remove = true
             tickPouchProtector.remove = true
-            tickSummoning.remove = true
+            aioSelectR.remove = true
+            tickSkull.remove = true            
+            tick01.remove = true
+            tickEmpty.remove = true
+            aioSelectF.remove = true
    
             needNexusMod = tickNexusMod.box_ticked
             PouchProtector = not tickPouchProtector.box_ticked
-            UseFamiliar = tickSummoning.box_ticked
+            needDemonicSkull = tickSkull.box_ticked
             MAX_IDLE_TIME_MINUTES = (tickJagexAcc.box_ticked == 1) and 5 or 15
             scriptPaused = false
             startTime = os.time()
    
-            if (aioSelect.return_click) then
-                aioSelect.return_click = false
-                for i, v in ipairs(aioOptions) do
-                    if (aioSelect.string_value == v.label) then
+            if (aioSelectR.return_click) then
+                aioSelectR.return_click = false
+                for i, v in ipairs(aioRune) do
+                    if (aioSelectR.string_value == v.label) then
                         selectedAltar = v.ALTARIDID
                         selectedPortal = v.PORTALID
                         selectedArea = v.AREAID 
                         selectedRune = v.RUNEID
+                    end
+                end
+            end
+
+            if (aioSelectF.return_click) then
+                aioSelectF.return_click = false
+                for i, vf in ipairs(aioFamiliar) do
+                    if (aioSelectF.string_value == vf.name) then
+                        selectedFamiliar = vf.FAMILIARID
+                        SelectedAB = vf.ABNAME
                     end
                 end
             end
@@ -793,7 +857,7 @@ while API.Read_LoopyLoop() do
         break
     end   
     drawGUI()
-    if UseFamiliar then
+    if SelectedAB then
         if checkForVanishesMessage() then
             RenewFamiliar() 
         end
