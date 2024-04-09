@@ -3,7 +3,7 @@
     Description: Crafting runes through Abyssal dimension.
 
     Author: Valtrex
-    Version: 1.31
+    Version: 1.32
     Release Date: 02-04-2024
 
     Release Notes:
@@ -12,6 +12,7 @@
     - Version 1.2 : Added Summoning support!
     - Version 1.3 : outer ring support
     - Version 1.31 : support for al familiars choose them from a dropdown menu
+    - Version 1.32 : Fixed an issu with the startup check using wildy sword of Edgevillage lodestone.
 
     You will need:
     - wildy sword on abilitybar or edgevillage lodestone on abilitybar for teleporting back to the bank.
@@ -653,10 +654,11 @@ local function invCheck()
         local warCheck = API.GetABs_name1("War's Retreat Teleport").enabled
         check(warCheck, "You need to have War's Retreat Teleport on your action bar")
     end
-    local edgeCheck = API.GetABs_name1("Edgeville Lodestone").enabled
-    local swordCheck = API.GetABs_name1("Wilderness sword").enabled
-    check(edgeCheck, "You need to have Edgevilage loodstone Teleport on your action bar")
-    check(swordCheck, "You need to have Wildysword on your action bar")
+    
+    if not API.GetABs_name1("Wilderness sword").enabled then
+        local edgeCheck = API.GetABs_name1("Edgeville Lodestone").enabled
+        check(edgeCheck, "You need to have Edgevilage loodstone Teleport on your action bar")
+    end
 
     firstRun = false
     return #errors == 0
