@@ -31,7 +31,7 @@ local API = require("api")
 
 local skill             = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version           = "1.31"
+local version           = "1.32"
 local selectedAltar     = nil
 local selectedPortal    = nil
 local selectedArea      = nil
