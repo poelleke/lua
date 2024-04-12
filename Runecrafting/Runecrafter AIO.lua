@@ -3,16 +3,17 @@
     Description: Crafting runes through Abyssal dimension.
 
     Author: Valtrex
-    Version: 1.32
+    Version: 1.4
     Release Date: 02-04-2024
 
     Release Notes:
-    - Version 1.0 : Initial release
-    - Version 1.1 : Updated procesbar, added startup check and added Powerburst
+    - Version 1.0 : Initial release.
+    - Version 1.1 : Updated procesbar, added startup check and added Powerburst.
     - Version 1.2 : Added Summoning support!
-    - Version 1.3 : outer ring support
-    - Version 1.31 : support for al familiars choose them from a dropdown menu
+    - Version 1.3 : outer ring support.
+    - Version 1.31 : support for al familiars choose them from a dropdown menu.
     - Version 1.32 : Fixed an issu with the startup check using wildy sword of Edgevillage lodestone.
+    - Version 1.4 : Demonic skull support (not fully tested)
 
     You will need:
     - wildy sword on abilitybar or edgevillage lodestone on abilitybar for teleporting back to the bank.
@@ -28,10 +29,11 @@
 ]]
 
 local API = require("api")
+local Show_Logs = false
 
 local skill             = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version           = "1.32"
+local version           = "1.4"
 local selectedAltar     = nil
 local selectedPortal    = nil
 local selectedArea      = nil
@@ -42,9 +44,10 @@ local lastTile          = nil
 LOCATIONS               = nil
 local scriptPaused      = true
 local firstRun          = true
+local Trips             = 0
+local Runes, fail       = 0, 0
+local fail              = 0
 local startTime, afk    = os.time(), os.time()
-local Trips = 0
-local Runes, fail = 0, 0
 local errors            = {}
 local needNexusMod
 local PouchProtector
@@ -116,7 +119,7 @@ local aioRune = {
         RUNEID = 561
     },
     {
-        label = "Law rune",--TODO: wapens en amor check, mag niets aan hebben!
+        label = "Law rune",
         ALTARIDID = 2485,
         PORTALID = 7135,
         AREAID = { x =2464, y = 4819, z = 0 },
@@ -136,14 +139,13 @@ local aioRune = {
         AREAID = { x = 2466, y = 4897, z = 0 },
         RUNEID = 565
     },
-    --[[
-    {
-        label = "Soul rune", --Charger id: 109428
+    --[[{
+        label = "Soul rune",
         ALTARIDID = 109429,
         PORTALID = 7138,
         AREAID = { x = 1953, y = 6679, z = 0 },
         RUNEID = 566
-    },--]]
+    },]]
 }
 
 local aioSelectF = API.CreateIG_answer()
@@ -174,6 +176,7 @@ local TELEPORTS      = {
 }
 
 local ID             = {
+    ANIMA_STONE = {54019, 54018},
     POWERBURST = { 49069, 49067, 49065, 49063 },
     CRAFTING_ANIMATION = 23250,
     WILDY_SWORD = { 37904, 37905, 37906, 37907, 41376, 41377 },
@@ -192,6 +195,7 @@ local ID             = {
     EYES = 7168,
     GAP = 7164,
     BOIL = 7165,
+    CHARGER = 109428,
 }
 
 local AREA           = {
@@ -202,6 +206,7 @@ local AREA           = {
     ABBY = { x = 3040, y = 4843, z = 0 },
     WARETREAT= { x = 3294, y = 10127, z = 0 },
     SMALL_OBELISK = { x = 3128, y = 3515, z = 0 },
+    DEATHS_OFFICE = {x = 414, y = 674, z = 0},
 }
 -----------------------UI-----------------------
 local function setupOptions()
@@ -219,7 +224,6 @@ local function setupOptions()
     btnStart.box_size = FFPOINT.new(90, 50, 0)
     btnStart.colour = ImColor.new(0, 0, 255)
     btnStart.string_value = "START"
-    btnStart.radius = 1.0
 
     IG_Text = API.CreateIG_answer()
     IG_Text.box_name = "TEXT"
@@ -228,27 +232,27 @@ local function setupOptions()
     IG_Text.string_value = "AIO Runecrafter - (v" .. version .. ") by Valtrex"
 
     IG_Back = API.CreateIG_answer()
-    IG_Back.box_name = "back";
+    IG_Back.box_name = "back"
     IG_Back.box_start = FFPOINT.new(0, 0, 0)
     IG_Back.box_size = FFPOINT.new(370, 175, 0)
     IG_Back.colour = ImColor.new(15, 13, 18, 255)
     IG_Back.string_value = ""
 
-    tickJagexAcc = API.CreateIG_answer();
+    tickJagexAcc = API.CreateIG_answer()
     tickJagexAcc.box_ticked = true
     tickJagexAcc.box_name = "Jagex Account"
     tickJagexAcc.box_start = FFPOINT.new(5, 60, 0);
     tickJagexAcc.colour = ImColor.new(0, 255, 0);
     tickJagexAcc.tooltip_text = "Sets idle timeout to 15 minutes for Jagex accounts"
 
-    tickNexusMod = API.CreateIG_answer();
+    tickNexusMod = API.CreateIG_answer()
     tickNexusMod.box_ticked = true
     tickNexusMod.box_name = "Nexus Mod relic"
     tickNexusMod.box_start = FFPOINT.new(5, 80, 0);
     tickNexusMod.colour = ImColor.new(0, 255, 0);
     tickNexusMod.tooltip_text = "Arrive at the centre of the Abyss when entering."
 
-    tickPouchProtector = API.CreateIG_answer();
+    tickPouchProtector = API.CreateIG_answer()
     tickPouchProtector.box_ticked = true
     tickPouchProtector.box_name = "Pouch Protector relic"
     tickPouchProtector.box_start = FFPOINT.new(5, 100, 0);
@@ -266,19 +270,19 @@ local function setupOptions()
         table.insert(aioSelectR.stringsArr, v.label)
     end
 
-    tickSkull = API.CreateIG_answer();
+    tickSkull = API.CreateIG_answer()
     tickSkull.box_name = "Use Demonic skull"
     tickSkull.box_start = FFPOINT.new(190, 60, 0);
     tickSkull.colour = ImColor.new(0, 255, 0);
     tickSkull.tooltip_text = "Use this for pvp Protection." 
 
-    tick01 = API.CreateIG_answer();
+    tick01 = API.CreateIG_answer()
     tick01.box_name = "Not in use"
     tick01.box_start = FFPOINT.new(190, 80, 0);
     tick01.colour = ImColor.new(0, 255, 0);
     tick01.tooltip_text = "Not in use."   
     
-    tickEmpty = API.CreateIG_answer();
+    tickEmpty = API.CreateIG_answer()
     tickEmpty.box_name = "For Testing"
     tickEmpty.box_start = FFPOINT.new(190, 100, 0);
     tickEmpty.colour = ImColor.new(0, 255, 0);
@@ -303,8 +307,8 @@ local function setupOptions()
     API.DrawCheckbox(tickJagexAcc)
     API.DrawCheckbox(tickPouchProtector)
     API.DrawComboBox(aioSelectR, false)
-    --API.DrawCheckbox(tick01)
-    --API.DrawCheckbox(tickSkull)    
+    API.DrawCheckbox(tickSkull) 
+    --API.DrawCheckbox(tick01)    
     --API.DrawCheckbox(tickEmpty) 
     API.DrawComboBox(aioSelectF, false)
 end
@@ -381,6 +385,7 @@ local function idleCheck()
     if timeDiff > randomTime then
         API.PIdle2()
         afk = os.time()
+        API.logDebug("Info: idle")
     end
 end
 
@@ -403,6 +408,19 @@ local function walkToTile(tile)
     API.DoAction_Tile(tile)
     lastTile = tile
 end
+
+local function sleep()
+    API.RandomSleep2(250, 0, 0)
+    API.WaitUntilMovingandAnimEnds()
+end
+
+local function Logout()
+    API.logDebug("Info: Logging out!")
+    API.DoAction_Logout_mini()
+    API.RandomSleep2(1000, 150, 150)
+    API.DoAction_Interface(0x24,0xffffffff,1,1433,68,-1,3808);
+    API.Write_LoopyLoop(false)
+end
 --------------------FUNCTIONS-------------------
 --------------------TELEPORTS-------------------
 local function isTeleportOptionsUp()
@@ -410,7 +428,7 @@ local function isTeleportOptionsUp()
     return (vb2874.state == 13) or (vb2874.stateAlt == 13)
 end
 
-local function isLodestoneInterfaceUp()--TODO: make sure that interface is seen.
+local function isLodestoneInterfaceUp()
     return #API.ScanForInterfaceTest2Get(true, { { 1092, 1, -1, -1, 0 }, { 1092, 54, -1, 1, 0 } }) > 0
 end
 
@@ -444,6 +462,7 @@ end
 local function teleportToEdgeville()
     local ws = API.GetABs_name1("Wilderness sword")
     if ws.enabled and ws.action == "Edgeville" then
+        API.logDebug("Info: use wildy sword teleport")
         API.DoAction_Ability_Direct(ws, 1, API.OFF_ACT_GeneralInterface_route)
     else
         teleportToDestination("Edgeville", true)
@@ -452,6 +471,7 @@ end
 
 local function TeleportWarRetreat() 
     if API.GetABs_name1("War's Retreat Teleport") ~= 0 and API.GetABs_name1("War's Retreat Teleport").enabled then
+        API.logDebug("Info: Teleport to War's Retreat")
         API.DoAction_Ability_Direct(API.GetABs_name1("War's Retreat Teleport"), 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(2000,1000,2000)
         API.WaitUntilMovingandAnimEnds()
@@ -495,6 +515,7 @@ end
 --------------------POWERBURST------------------
 --------------------SUMMONING-------------------
 local function hasfamiliar()
+    API.logDebug("Info: Check if has familliar!")
     return API.Buffbar_GetIDstatus(26095).id > 0
 end
 
@@ -506,7 +527,6 @@ end
 
 local function renewSummoningPoints() 
     API.DoAction_Object1(0x3d,API.OFF_ACT_GeneralObject_route0,{ID.ALTAR_OF_WAR} ,50)
-    API.DoAction_Object1(0x3d,API.OFF_ACT_GeneralObject_route0,{ID.SMALL_OBELISK} ,50)
     API.RandomSleep2(600,0,0)
     API.WaitUntilMovingandAnimEnds()
     API.RandomSleep2(1200,0,0)
@@ -518,11 +538,11 @@ local function checkForVanishesMessage()
         for k, v in pairs(chatTexts) do
             if k > 2 then break end
             if string.find(v.text, "<col=EB2F2F>You have 1 minute before your familiar vanishes.") then
-                print("1 minute left!")
+                API.logDebug("Info: 1 minute left!")
                 return true
             end  
             if string.find(v.text, "<col=EB2F2F>You have 30 seconds before your familliar vanishes.") then
-                print("30 seconds left!")
+                API.logDebug("Info: 30 seconds left!")
                 return true
             end          
         end
@@ -536,7 +556,7 @@ local function checkForswordMessage()
         for k, v in pairs(chatTexts) do
             if k > 2 then break end
             if string.find(v.text, "The effects of your Wilderness sword teleport you closer to the abyssal rift.") then
-                print("A shortcut it taken")
+                API.logDebug("Info: Function: A shortcut is taken")
                 return true
             end          
         end
@@ -546,7 +566,7 @@ end
 
 local function RenewFamiliar(pouch) 
     if fail > 3 then 
-        API.logError("couldn't renew familiar")
+        API.logError("couldn't renew familiar.")
         API.Write_LoopyLoop(false)
         return
     end
@@ -556,6 +576,7 @@ local function RenewFamiliar(pouch)
     end
 
     if API.GetSummoningPoints_() < 400 then 
+        API.logDebug("Info: Renew summoning points.")
         renewSummoningPoints()
     end
     
@@ -567,19 +588,20 @@ local function RenewFamiliar(pouch)
 
     if API.BankOpen2() then 
         if API.Invfreecount_() < 2 then
-            API.KeyboardPress2(0x33,0,50) -- deposit all
+            API.logDebug("Info: Summoning: make more room in your invt.")
+            API.KeyboardPress2(0x33,0,50) 
             API.RandomSleep2(1000, 500, 1000)
         end
 
         API.DoAction_Bank(selectedFamiliar, 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(1000, 500, 1000)
 
-        API.KeyboardPress2(0x1B, 50, 150) -- close bank
+        API.KeyboardPress2(0x1B, 50, 150)
         API.RandomSleep2(1000, 500, 1000)
     end
 
     if API.InvStackSize(selectedFamiliar) < 1 then
-        print("didn't find any pouches")
+        API.logError("didn't find any pouches")
         fail = fail + 1
         return
     end
@@ -596,8 +618,10 @@ local function RenewFamiliar(pouch)
 end
 
 local function familiar()
-    if SelectedAB then
+    if selectedFamiliar then
+        API.logDebug("Info: Familliar check 01")
         if not hasfamiliar() or checkForVanishesMessage() then
+            API.logDebug("Info: Familliar check 02")
             RenewFamiliar() 
         end
     end 
@@ -606,10 +630,27 @@ end
 -----------------------PVP----------------------
 local function hasTarget()
     if API.GetInCombBit() then
-        print("getting attacked")
+        API.logWarn("getting attacked")
         return true
     end
     return false
+end
+
+local WildernissInterface = {
+    InterfaceComp5.new(382,14,-1,-1,0),
+    InterfaceComp5.new(382,15,-1,14,0),
+    InterfaceComp5.new(382,17,-1,15,0),
+}
+
+local function isWildernissInterfacePresent()
+    local result = API.ScanForInterfaceTest2Get(true, WildernissInterface)
+    if #result > 0 then
+        API.logDebug("Info: Wildy interface seen!")
+        API.DoAction_Interface(0xffffffff,0xffffffff,0,382,13,-1,2912);
+        API.RandomSleep2(3000, 500, 1000)
+        API.DoAction_Interface(0xffffffff,0xffffffff,0,382,8,-1,2912);
+
+    end
 end
 -----------------------PVP----------------------
 ---------------------CHECKS---------------------
@@ -644,17 +685,16 @@ local function invCheck()
         check(PouchCheck, "It's recomended to use the Pouch Protector relic, the scrips does not repair it for you!")
     end
 
-    -- Level checks
-    
+    -- Level checks    
     local hasRequiredLevel = API.XPLevelTable(API.GetSkillXP("WOODCUTTING")) >= 30 or API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 or API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 or API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 or API.XPLevelTable(API.GetSkillXP("FIREMAKING")) >= 30
     check(hasRequiredLevel, "You need at least Level 30 in Woodcuting, Mining, Thieving, Agility or Firemaking")
     
     -- Action bar checks
-    if SelectedAB then
+    if selectedFamiliar then
         local warCheck = API.GetABs_name1("War's Retreat Teleport").enabled
         check(warCheck, "You need to have War's Retreat Teleport on your action bar")
     end
-    
+
     if not API.GetABs_name1("Wilderness sword").enabled then
         local edgeCheck = API.GetABs_name1("Edgeville Lodestone").enabled
         check(edgeCheck, "You need to have Edgevilage loodstone Teleport on your action bar")
@@ -667,118 +707,161 @@ end
 --------------------MAIN CODE-------------------
 local function Walk()  
     if isAtLocation(AREA.EDGEVILLE_LODESTONE, 10) or  isAtLocation(AREA.EDGEVILLE_BANK, 10) or  isAtLocation(AREA.EDGEVILLE, 10) then
-        API.RandomSleep2(2500, 150, 150)
-        API.WaitUntilMovingandAnimEnds()        
-        if API.InvFull_() and invContains(ID.ESSENCE) then
+        sleep()       
+        if invContains(ID.ESSENCE) then
             if p.y < 3521 then
                 API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
-                API.RandomSleep2(500, 150, 150)
-                API.WaitUntilMovingandAnimEnds()
+                API.logDebug("Doaction: Wildy wall")
+                sleep()
             end    
         else
-            API.RandomSleep2(2500, 650, 500)
-            API.WaitUntilMovingandAnimEnds()
+            API.RandomSleep2(500, 0, 0)
+            API.WaitUntilMovingandAnimEnds() 
             API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route4, { ID.BANK_NPC }, 100)
+            API.logDebug("Doaction: Bank")
         end 
+---------------------Demonic Skull
+    elseif needDemonicSkull and isAtLocation(AREA.WILDY, 50) then
+        if not hasTarget() then
+            if API.PInArea(3089, 50, 3523, 1) then
+                local tile = WPOINT.new(3103 + math.random(-4, 4), 3550 + math.random(-4, 4), 0)
+                walkToTile(tile)
+                API.logDebug("Walk to mage (Demonic Skull)")
+                API.RandomSleep2(500, 500, 600)
+            else
+                if p.y < 3521 then
+                    API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
+                    API.logDebug("Doaction: Wildy wall (Demonic Skull)")
+                    API.RandomSleep2(500, 150, 150)
+                    API.WaitUntilMovingandAnimEnds()
+                    API.RandomSleep2(1500, 150, 150)
+                    if isWildernissInterfacePresent() then 
+                        API.logDebug("Found wildy warning! (Demonic Skull)")
+                        API.RandomSleep2(500, 150, 150)
+                        API.WaitUntilMovingandAnimEnds()
+                    end
+                end
+            end
+            if API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route, { ID.MAGE }, 50) then
+                API.logDebug("Doaction: Mage (Demonic Skull)")
+                sleep()
+            end
+        else
+            API.logWarn("Running back and logging oud, been PKed!")
+            local tile = WPOINT.new(3096 + math.random(-6, 6), 3517 + math.random(-2, 2), 0)
+            walkToTile(tile) 
+            sleep()
+            Logout()
+        end
+---------------------Demonic Skull
     elseif isAtLocation(AREA.WILDY, 50) then
+        sleep()
         if API.PInArea(3089, 50, 3523, 1) then
             local tile = WPOINT.new(3103 + math.random(-4, 4), 3550 + math.random(-4, 4), 0)
             walkToTile(tile)
+            API.logDebug("Walk to mage")
             API.RandomSleep2(500, 500, 600)
         else
             if p.y < 3521 then
                 API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
-                API.RandomSleep2(500, 150, 150)
-                API.WaitUntilMovingandAnimEnds()
+                API.logDebug("Doaction: Wildy wall (Safty Check)")
+                sleep()
             end
         end
         if API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route, { ID.MAGE }, 50) then
-            API.RandomSleep2(500, 650, 500)
-            API.WaitUntilMovingandAnimEnds()
+            API.logDebug("Doaction: Mage")
+            sleep()
         end
+---------------------Inner circle 
     elseif not needNexusMod and isAtLocation(AREA.ABBY, 50) then 
         if checkForswordMessage() then
             API.RandomSleep2(500, 650, 500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
-            API.RandomSleep2(500, 650, 500)
-            API.WaitUntilMovingandAnimEnds()
+            API.logDebug("Doaction: Shordcut (Inner circle)")
+            sleep()
         elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.GAP },10) then
+            API.logDebug("Doaction: Gab (Inner circle)")
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
-            API.RandomSleep2(500, 650, 500)
-            API.WaitUntilMovingandAnimEnds() 
+            sleep() 
         elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.TENDRILS },10) and API.XPLevelTable(API.GetSkillXP("WOODCUTTING")) >= 30 then 
+            API.logDebug("Doaction: Tendrils (Inner circle)")
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
-            API.RandomSleep2(500, 650, 500)
-            API.WaitUntilMovingandAnimEnds() 
-        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.ROCK },10) and API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 then   
+            sleep() 
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.ROCK },10) and API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 then 
+            API.logDebug("Doaction: Rock (Inner circle)")  
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
-            API.RandomSleep2(500, 650, 500)
-            API.WaitUntilMovingandAnimEnds() 
-        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.EYES },10) and API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 then  
+            sleep() 
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.EYES },10) and API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 then 
+            API.logDebug("Doaction: Eye's (Inner circle)") 
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
-            API.RandomSleep2(500, 650, 500)
-            API.WaitUntilMovingandAnimEnds()   
-        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.PASSAGE },10) and API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 then  
+            sleep()   
+        elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.PASSAGE },10) and API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 then 
+            API.logDebug("Doaction: Passage (Inner circle)") 
             API.RandomSleep2(8000, 1000, 1500)
-            API.DoAction_Object1(0x29,0,{ selectedPortal },50);
-            API.RandomSleep2(500, 650, 500)
-            API.WaitUntilMovingandAnimEnds() 
+            API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
+            sleep()
         elseif API.DoAction_Object1(0x3a,API.OFF_ACT_GeneralObject_route0,{ ID.BOIL },10) and API.XPLevelTable(API.GetSkillXP("FIREMAKING")) >= 30 then
+            API.logDebug("Doaction: Boil (Inner circle)")
             API.RandomSleep2(8000, 1000, 1500)
             API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ selectedPortal },50);
-            API.RandomSleep2(500, 650, 500)
-            API.WaitUntilMovingandAnimEnds() 
+            sleep()
         else
             teleportToEdgeville()
             API.RandomSleep2(500, 650, 500)
             API.Write_LoopyLoop(false)
-            print("CANT FIND A WAY TO ENTER THE INNER CIRCLE!")
+            API.logError("CANT FIND A WAY TO ENTER THE INNER CIRCLE!")
         end
+---------------------Inner circle 
     elseif needNexusMod and isAtLocation(AREA.ABBY, 15) then
-        API.RandomSleep2(500, 650, 500)
         API.DoAction_Object1(0x29,0,{ selectedPortal },50);
-        API.RandomSleep2(500, 650, 500)
-        API.WaitUntilMovingandAnimEnds()
-    elseif isAtLocation(selectedArea, 15) then
+        API.logDebug("Clicking on:" .. selectedPortal .."")
+        sleep()  
+    elseif isAtLocation(selectedArea, 25) then
         if invContains(ID.ESSENCE) then
+            sleep()
             if canUsePowerburst() and findPowerburst() then
+                API.logDebug("Use Powerburst")
                 return API.DoAction_Inventory2({ 49069, 49067, 49065, 49063 }, 0, 1, API.OFF_ACT_GeneralInterface_route)
             end
-            API.RandomSleep2(250, 650, 500)
-            API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15);
-            API.RandomSleep2(250, 650, 500)
-            API.WaitUntilMovingandAnimEnds()
+            sleep()
+            if API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15) then
+                API.logDebug("Clicking on:" .. selectedAltar .."")
+            end            
+            sleep()
+        else 
             Trips = Trips + API.InvItemcount_1(selectedRune)
             Runes = Runes + API.InvStackSize(selectedRune)
-        else 
+            API.DoRandomEvents()
             teleportToEdgeville()
-            print("Done! Teleporting back for LoopyLoop!")
-            API.RandomSleep2(250, 650, 500)
-            API.WaitUntilMovingandAnimEnds()
+            API.logDebug("Info: Done! Teleporting back for LoopyLoop!")
+            sleep()
         end
     else
-        teleportToEdgeville()
-        print("Unknown area Teleport to Edgeville!")
-        API.RandomSleep2(250, 650, 500)
-        API.WaitUntilMovingandAnimEnds()
+        if isAtLocation(AREA.DEATHS_OFFICE, 50) then
+            Logout()
+            API.logError("LOGGED OUT BECAUSE, YOU DIED!")
+        else
+            API.RandomSleep2(2500, 150, 150)
+            teleportToEdgeville()
+            API.logDebug("Info: Unknown area Teleport to Edgeville!")
+            sleep()
+        end
     end
 end
 --------------------MAIN CODE-------------------
 local function gameStateChecks()
     local gameState = API.GetGameState2()
     if (gameState ~= 3) then
-        API.logDebug('Not ingame with state:', gameState)
-        print('Not ingame with state:', gameState)
+        API.logError('Not ingame with state:', gameState)
         API.Write_LoopyLoop(false)
         return
     end
     if not API.PlayerLoggedIn() then
-        API.logDebug('Not Logged In')
-        print('Not Logged In')
+        API.logError('Not Logged In')
         API.Write_LoopyLoop(false)
         return;
     end
@@ -788,6 +871,7 @@ setupGUI()
 setupOptions()
 API.ScriptRuntimeString()
 API.GetTrackedSkills()
+API.SetDrawLogs(Show_Logs)
 -----------------------LOOP---------------------
 while API.Read_LoopyLoop() do
     gameStateChecks()
@@ -838,10 +922,17 @@ while API.Read_LoopyLoop() do
                     end
                 end
             end
+
+            if selectedFamiliar then
+                API.logDebug("Info: Familliar selected!")
+            else
+                API.logDebug("Info: No familliar selected!")
+            end
          
             if selectedAltar == nil then
                 API.Write_LoopyLoop(false)
                 print("Please select a Rune type from the dropdown menu!")
+                API.logError("Please select a Rune type from the dropdown menu!")
             end
         end
         goto continue
@@ -849,17 +940,20 @@ while API.Read_LoopyLoop() do
 -------------END UI    
     if firstRun and not invCheck() then
         print("!!! Startup Check Failed !!!")
+        API.logError("!!! Startup Check Failed !!!")
         if #errors > 0 then
             print("Errors:")
+            API.logError("Errors:")
             for _, errorMsg in ipairs(errors) do
                 print("- " .. errorMsg)
+                API.logError("- " .. errorMsg)
             end
         end
         API.Write_LoopyLoop(false)
         break
-    end   
+    end
     drawGUI()
-    if SelectedAB then
+    if selectedFamiliar then
         if checkForVanishesMessage() then
             RenewFamiliar() 
         end
