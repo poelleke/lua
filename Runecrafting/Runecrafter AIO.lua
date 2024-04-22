@@ -3,37 +3,36 @@
     Description: Crafting runes through Abyssal dimension.
 
     Author: Valtrex
-    Version: 1.4
+    Version: 1.5
     Release Date: 02-04-2024
 
     Release Notes:
-    - Version 1.0 : Initial release.
-    - Version 1.1 : Updated procesbar, added startup check and added Powerburst.
-    - Version 1.2 : Added Summoning support!
-    - Version 1.3 : outer ring support.
-    - Version 1.31 : support for al familiars choose them from a dropdown menu.
-    - Version 1.32 : Fixed an issu with the startup check using wildy sword of Edgevillage lodestone.
-    - Version 1.4 : Demonic skull support (not fully tested)
+    - Version 1.0   : Initial release.
+    - Version 1.1   : Updated procesbar, added startup check and added Powerburst.
+    - Version 1.2   : Added Summoning support!
+    - Version 1.3   : Outer ring support.
+    - Version 1.31  : Support for al familiars choose them from a dropdown menu.
+    - Version 1.4   : Demonic skull support (not fully tested)
+    - Version 1.5   : add soul altar, the option to use surge/ dive when entering the wilde, Support for Bankpin, also made some changes to the UI. it can be pause now and when changing somting and when you restart it it wil do you change
 
     You will need:
-    - wildy sword on abilitybar or edgevillage lodestone on abilitybar for teleporting back to the bank.
     - War's Retreat Teleport on actionbar when using a familiar
     - Nexus Mod relic power
     - bank uses: "load last preset"
 
-    TODO:
-    - Soul Altar
-    - demonic skull (protection against getting PKed)
-    - More safty checks.
-
 ]]
 
-local API = require("api")
-local Show_Logs = false
+local API       = require("api")
+local EQUIPMENT = require("Equipment")
+
+-----------------User Settings------------------
+local Bankpin           = xxxx-- Your Bankpin
+local Showlogs          = false-- Show log's
+-----------------User Settings------------------
 
 local skill             = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version           = "1.4"
+local version           = "1.5"
 local selectedAltar     = nil
 local selectedPortal    = nil
 local selectedArea      = nil
@@ -44,127 +43,42 @@ local lastTile          = nil
 LOCATIONS               = nil
 local scriptPaused      = true
 local firstRun          = true
+local Soul              = false
 local Trips             = 0
 local Runes, fail       = 0, 0
 local fail              = 0
+local runecount         = 0
+local Soulcound         = 0
+local SoulRun           = 0
 local startTime, afk    = os.time(), os.time()
 local errors            = {}
 local needNexusMod
 local PouchProtector
 local needDemonicSkull
+local SurgeDiveAbillity
 
 local aioSelectR = API.CreateIG_answer()
 local aioRune = {
-    {
-        label = "Air rune",
-        ALTARIDID = 2478,
-        PORTALID = 7139,
-        AREAID = { x = 2841, y = 4830, z = 0 },
-        RUNEID = 556
-    },
-    {
-        label = "Mind rune",
-        ALTARIDID = 2479,
-        PORTALID = 7140,
-        AREAID = { x = 2784, y = 4843, z = 0 },
-        RUNEID = 558
-    },
-    {
-        label = "water rune",
-        ALTARIDID = 2480,
-        PORTALID = 7137,
-        AREAID = { x = 3493, y = 4832, z = 0 },
-        RUNEID = 555
-    },
-    {
-        label = "Earth rune",
-        ALTARIDID = 2481,
-        PORTALID = 7130,
-        AREAID = { x = 2657, y = 4830, z = 0 },
-        RUNEID = 557
-    },
-    {
-        label = "Fire rune",
-        ALTARIDID = 2482,
-        PORTALID = 7129,
-        AREAID = { x = 2577, y = 4846, z = 0 },
-        RUNEID = 554
-    },
-    {
-        label = "Body rune",
-        ALTARIDID = 2483,
-        PORTALID = 7131,
-        AREAID = { x = 2520, y = 4846, z = 0 },
-        RUNEID = 559
-    },
-    {
-        label = "Cosmic rune",
-        ALTARIDID = 2484,
-        PORTALID = 7132,
-        AREAID = { x = 2142, y = 4844, z = 0 },
-        RUNEID = 564
-    },
-    {
-        label = "Chaos rune",
-        ALTARIDID = 2487,
-        PORTALID = 7134,
-        AREAID = { x = 2270, y = 4844, z = 0 },
-        RUNEID = 562
-    },
-    {
-        label = "Nature rune",
-        ALTARIDID = 2486,
-        PORTALID = 7133,
-        AREAID = { x = 2400, y = 4835, z = 0 },
-        RUNEID = 561
-    },
-    {
-        label = "Law rune",
-        ALTARIDID = 2485,
-        PORTALID = 7135,
-        AREAID = { x =2464, y = 4819, z = 0 },
-        RUNEID = 563
-    },
-    {
-        label = "Death rune",
-        ALTARIDID = 2488,
-        PORTALID = 7136,
-        AREAID = { x = 2208, y = 4829, z = 0 },
-        RUNEID = 560
-    },
-    {
-        label = "Blood rune",
-        ALTARIDID = 30624,
-        PORTALID = 7141,
-        AREAID = { x = 2466, y = 4897, z = 0 },
-        RUNEID = 565
-    },
-    --[[{
-        label = "Soul rune",
-        ALTARIDID = 109429,
-        PORTALID = 7138,
-        AREAID = { x = 1953, y = 6679, z = 0 },
-        RUNEID = 566
-    },]]
+    { label = "Air rune",    ALTARIDID = 2478,   PORTALID = 7139, AREAID = { x = 2841, y = 4830, z = 0 }, RUNEID = 556 },
+    { label = "Mind rune",   ALTARIDID = 2479,   PORTALID = 7140, AREAID = { x = 2784, y = 4843, z = 0 }, RUNEID = 558 },
+    { label = "water rune",  ALTARIDID = 2480,   PORTALID = 7137, AREAID = { x = 3493, y = 4832, z = 0 }, RUNEID = 555 },
+    { label = "Earth rune",  ALTARIDID = 2481,   PORTALID = 7130, AREAID = { x = 2657, y = 4830, z = 0 }, RUNEID = 557 },
+    { label = "Fire rune",   ALTARIDID = 2482,   PORTALID = 7129, AREAID = { x = 2577, y = 4846, z = 0 }, RUNEID = 554 },
+    { label = "Body rune",   ALTARIDID = 2483,   PORTALID = 7131, AREAID = { x = 2520, y = 4846, z = 0 }, RUNEID = 559 },
+    { label = "Cosmic rune", ALTARIDID = 2484,   PORTALID = 7132, AREAID = { x = 2142, y = 4844, z = 0 }, RUNEID = 564 },
+    { label = "Chaos rune",  ALTARIDID = 2487,   PORTALID = 7134, AREAID = { x = 2270, y = 4844, z = 0 }, RUNEID = 562 },
+    { label = "Nature rune", ALTARIDID = 2486,   PORTALID = 7133, AREAID = { x = 2400, y = 4835, z = 0 }, RUNEID = 561 },
+    { label = "Law rune",    ALTARIDID = 2485,   PORTALID = 7135, AREAID = { x = 2464, y = 4819, z = 0 }, RUNEID = 563 },
+    { label = "Death rune",  ALTARIDID = 2488,   PORTALID = 7136, AREAID = { x = 2208, y = 4829, z = 0 }, RUNEID = 560 },
+    { label = "Blood rune",  ALTARIDID = 30624,  PORTALID = 7141, AREAID = { x = 2466, y = 4897, z = 0 }, RUNEID = 565 },
+    { label = "Soul rune",   ALTARIDID = 109429, PORTALID = 7138, AREAID = { x = 1953, y = 6679, z = 0 }, RUNEID = 566 },
 }
 
 local aioSelectF = API.CreateIG_answer()
 local aioFamiliar = {
-    {
-        name = "Abyssal parasite",
-        FAMILIARID = 12035,
-        ABNAME = API.GetABs_name1("Abyssal parasite pouch")
-    },
-    {
-        name = "Abyssal lurker",
-        FAMILIARID = 12037,
-        ABNAME = API.GetABs_name1("Abyssal lurker pouch")
-    },
-    {
-        name = "Abyssal titan",
-        FAMILIARID = 12796,
-        ABNAME = API.GetABs_name1("Abyssal titan pouch")
-    },
+    { name = "Abyssal parasite", FAMILIARID = 12035, ABNAME = API.GetABs_name1("Abyssal parasite pouch") },
+    { name = "Abyssal lurker",   FAMILIARID = 12037, ABNAME = API.GetABs_name1("Abyssal lurker pouch") },
+    { name = "Abyssal titan",    FAMILIARID = 12796, ABNAME = API.GetABs_name1("Abyssal titan pouch") },
 }
 
 local LODESTONES     = {
@@ -181,7 +95,7 @@ local ID             = {
     CRAFTING_ANIMATION = 23250,
     WILDY_SWORD = { 37904, 37905, 37906, 37907, 41376, 41377 },
     POUCHE = { 5509, 5510, 5512, 5514, 24205 },
-    WILDY_WALL = { 65076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443},
+    WILDY_WALL = { 65076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, --[[65086,]] 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443},
     BANK = { 42377, 42378 },
     BANK_NPC = 2759,
     WAR_BANK = 114750,
@@ -212,14 +126,14 @@ local AREA           = {
 local function setupOptions()
 
     btnStop = API.CreateIG_answer()
-    btnStop.box_start = FFPOINT.new(230, 125, 0)
+    btnStop.box_start = FFPOINT.new(235, 169, 0)
     btnStop.box_name = " STOP "
     btnStop.box_size = FFPOINT.new(90, 50, 0)
     btnStop.colour = ImColor.new(255, 255, 255)
     btnStop.string_value = "STOP"
 
     btnStart = API.CreateIG_answer()
-    btnStart.box_start = FFPOINT.new(45, 125, 0)
+    btnStart.box_start = FFPOINT.new(50, 169, 0)
     btnStart.box_name = " START "
     btnStart.box_size = FFPOINT.new(90, 50, 0)
     btnStart.colour = ImColor.new(0, 0, 255)
@@ -227,40 +141,40 @@ local function setupOptions()
 
     IG_Text = API.CreateIG_answer()
     IG_Text.box_name = "TEXT"
-    IG_Text.box_start = FFPOINT.new(50, 15, 0)
+    IG_Text.box_start = FFPOINT.new(55, 59, 0)
     IG_Text.colour = ImColor.new(255, 255, 255);
     IG_Text.string_value = "AIO Runecrafter - (v" .. version .. ") by Valtrex"
 
     IG_Back = API.CreateIG_answer()
     IG_Back.box_name = "back"
-    IG_Back.box_start = FFPOINT.new(0, 0, 0)
-    IG_Back.box_size = FFPOINT.new(370, 175, 0)
+    IG_Back.box_start = FFPOINT.new(5, 44, 0)
+    IG_Back.box_size = FFPOINT.new(370, 219, 0)
     IG_Back.colour = ImColor.new(15, 13, 18, 255)
     IG_Back.string_value = ""
 
     tickJagexAcc = API.CreateIG_answer()
     tickJagexAcc.box_ticked = true
     tickJagexAcc.box_name = "Jagex Account"
-    tickJagexAcc.box_start = FFPOINT.new(5, 60, 0);
+    tickJagexAcc.box_start = FFPOINT.new(10, 104, 0);
     tickJagexAcc.colour = ImColor.new(0, 255, 0);
     tickJagexAcc.tooltip_text = "Sets idle timeout to 15 minutes for Jagex accounts"
 
     tickNexusMod = API.CreateIG_answer()
     tickNexusMod.box_ticked = true
     tickNexusMod.box_name = "Nexus Mod relic"
-    tickNexusMod.box_start = FFPOINT.new(5, 80, 0);
+    tickNexusMod.box_start = FFPOINT.new(10, 124, 0);
     tickNexusMod.colour = ImColor.new(0, 255, 0);
     tickNexusMod.tooltip_text = "Arrive at the centre of the Abyss when entering."
 
     tickPouchProtector = API.CreateIG_answer()
     tickPouchProtector.box_ticked = true
     tickPouchProtector.box_name = "Pouch Protector relic"
-    tickPouchProtector.box_start = FFPOINT.new(5, 100, 0);
+    tickPouchProtector.box_start = FFPOINT.new(10, 144, 0);
     tickPouchProtector.colour = ImColor.new(0, 255, 0);
     tickPouchProtector.tooltip_text = "Runecrafting pouches will no longer degrade when used"
 
     aioSelectR.box_name = "###RUNE"
-    aioSelectR.box_start = FFPOINT.new(5, 30, 0)
+    aioSelectR.box_start = FFPOINT.new(10, 74, 0)
     aioSelectR.box_size = FFPOINT.new(240, 0, 0)
     aioSelectR.stringsArr = { }
     aioSelectR.tooltip_text = "Select an rune to craft."
@@ -272,24 +186,24 @@ local function setupOptions()
 
     tickSkull = API.CreateIG_answer()
     tickSkull.box_name = "Use Demonic skull"
-    tickSkull.box_start = FFPOINT.new(190, 60, 0);
+    tickSkull.box_start = FFPOINT.new(195, 104, 0);
     tickSkull.colour = ImColor.new(0, 255, 0);
     tickSkull.tooltip_text = "Use this for pvp Protection." 
 
-    tick01 = API.CreateIG_answer()
-    tick01.box_name = "Not in use"
-    tick01.box_start = FFPOINT.new(190, 80, 0);
-    tick01.colour = ImColor.new(0, 255, 0);
-    tick01.tooltip_text = "Not in use."   
+    tickdive = API.CreateIG_answer()
+    tickdive.box_name = "Use Surge/ Dive"
+    tickdive.box_start = FFPOINT.new(195, 124, 0);
+    tickdive.colour = ImColor.new(0, 255, 0);
+    tickdive.tooltip_text = "Make use of the surge and dive abillity."   
     
     tickEmpty = API.CreateIG_answer()
     tickEmpty.box_name = "For Testing"
-    tickEmpty.box_start = FFPOINT.new(190, 100, 0);
+    tickEmpty.box_start = FFPOINT.new(195, 144, 0);
     tickEmpty.colour = ImColor.new(0, 255, 0);
     tickEmpty.tooltip_text = "This is for testing."   
 
     aioSelectF.box_name = "###FAMILIAR"
-    aioSelectF.box_start = FFPOINT.new(190, 30, 0)
+    aioSelectF.box_start = FFPOINT.new(195, 74, 0)
     aioSelectF.box_size = FFPOINT.new(240, 0, 0)
     aioSelectF.stringsArr = { }
     aioSelectF.tooltip_text = "Select an familiar to use."
@@ -308,7 +222,7 @@ local function setupOptions()
     API.DrawCheckbox(tickPouchProtector)
     API.DrawComboBox(aioSelectR, false)
     API.DrawCheckbox(tickSkull) 
-    --API.DrawCheckbox(tick01)    
+    API.DrawCheckbox(tickdive)    
     --API.DrawCheckbox(tickEmpty) 
     API.DrawComboBox(aioSelectF, false)
 end
@@ -330,7 +244,7 @@ function formatNumber(num)
         return tostring(num)
     end
 end
--- Format script elapsed time to [hh:mm:ss]
+
 local function formatElapsedTime(startTime)
     local currentTime = os.time()
     local elapsedTime = currentTime - startTime
@@ -359,10 +273,7 @@ local function printProgressReport(final)
     local time = formatElapsedTime(startTime)
     local currentLevel = API.XPLevelTable(API.GetSkillXP(skill))
     IGP.radius = calcProgressPercentage(skill, API.GetSkillXP(skill)) / 100
-    IGP.string_value = time ..
-        " | " ..
-        string.lower(skill):gsub("^%l", string.upper) ..
-        ": " .. currentLevel .. " | XP/H: " .. formatNumber(xpPH) .. " | XP: " .. formatNumber(diffXp) .. " | Trips: " .. formatNumber(Trips) .. " | Trips/H: " .. formatNumber(TripsPH) .. " | Runes: " .. formatNumber(Runes) .. " | Runes/H: " .. formatNumber(RunesPH)
+    IGP.string_value = time .. " | " .. string.lower(skill):gsub("^%l", string.upper) .. ": " .. currentLevel .. " | XP/H: " .. formatNumber(xpPH) .. " | XP: " .. formatNumber(diffXp) .. " | Trips: " .. formatNumber(Trips) .. " | Trips/H: " .. formatNumber(TripsPH) .. " | Runes: " .. formatNumber(Runes) .. " | Runes/H: " .. formatNumber(RunesPH)
 end
 
 local function setupGUI()
@@ -416,10 +327,25 @@ end
 
 local function Logout()
     API.logDebug("Info: Logging out!")
+    API.logInfo("Logging out!")
     API.DoAction_Logout_mini()
     API.RandomSleep2(1000, 150, 150)
     API.DoAction_Interface(0x24,0xffffffff,1,1433,68,-1,3808);
     API.Write_LoopyLoop(false)
+end
+
+local BankpinInterface = {
+    InterfaceComp5.new(759,5,-1,-1,0),
+}
+
+local function isBankpinInterfacePresent()
+    local result = API.ScanForInterfaceTest2Get(true, BankpinInterface)
+    if #result > 0 then
+        API.logDebug("Info: Bankpin interface found!")
+        API.logInfo("Bankpin interface found!")
+        API.DoBankPin(Bankpin)
+
+    end
 end
 --------------------FUNCTIONS-------------------
 --------------------TELEPORTS-------------------
@@ -429,7 +355,7 @@ local function isTeleportOptionsUp()
 end
 
 local function isLodestoneInterfaceUp()
-    return #API.ScanForInterfaceTest2Get(true, { { 1092, 1, -1, -1, 0 }, { 1092, 54, -1, 1, 0 } }) > 0
+    return (#API.ScanForInterfaceTest2Get(true, { { 1092, 1, -1, -1, 0 }, { 1092, 54, -1, 1, 0 } }) > 0) or API.Compare2874Status(30)
 end
 
 local function teleportToLodestone(name)
@@ -462,7 +388,8 @@ end
 local function teleportToEdgeville()
     local ws = API.GetABs_name1("Wilderness sword")
     if ws.enabled and ws.action == "Edgeville" then
-        API.logDebug("Info: use wildy sword teleport")
+        API.logDebug("Info: Use wilderness sword teleport")
+        API.logInfo("Use wilderness sword teleport.")
         API.DoAction_Ability_Direct(ws, 1, API.OFF_ACT_GeneralInterface_route)
     else
         teleportToDestination("Edgeville", true)
@@ -472,6 +399,7 @@ end
 local function TeleportWarRetreat() 
     if API.GetABs_name1("War's Retreat Teleport") ~= 0 and API.GetABs_name1("War's Retreat Teleport").enabled then
         API.logDebug("Info: Teleport to War's Retreat")
+        API.logInfo("Teleport to War's Retreat.")
         API.DoAction_Ability_Direct(API.GetABs_name1("War's Retreat Teleport"), 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(2000,1000,2000)
         API.WaitUntilMovingandAnimEnds()
@@ -539,10 +467,12 @@ local function checkForVanishesMessage()
             if k > 2 then break end
             if string.find(v.text, "<col=EB2F2F>You have 1 minute before your familiar vanishes.") then
                 API.logDebug("Info: 1 minute left!")
+                API.logInfo("Familiar has 1 minute left!")
                 return true
             end  
             if string.find(v.text, "<col=EB2F2F>You have 30 seconds before your familliar vanishes.") then
                 API.logDebug("Info: 30 seconds left!")
+                API.logInfo("Familiar has 30 seconds left!")
                 return true
             end          
         end
@@ -556,7 +486,8 @@ local function checkForswordMessage()
         for k, v in pairs(chatTexts) do
             if k > 2 then break end
             if string.find(v.text, "The effects of your Wilderness sword teleport you closer to the abyssal rift.") then
-                API.logDebug("Info: Function: A shortcut is taken")
+                API.logDebug("Info: A shortcut is taken")
+                API.logInfo("A shortcut is taken")
                 return true
             end          
         end
@@ -564,56 +495,75 @@ local function checkForswordMessage()
     return false
 end
 
-local function RenewFamiliar(pouch) 
+local function checkForChargerMessage()
+    local chatTexts = ChatGetMessages()
+    if chatTexts then
+        for k, v in pairs(chatTexts) do
+            if k > 2 then break end
+            if string.find(v.text, "<col=FFFFFF>The charger cannot hold any more essence.") then
+                API.logDebug("Info: Charger is ful.")
+                API.logInfo("Charger is ful.")
+                return true
+            end          
+        end
+    end
+    return false
+end
+
+
+local function getFamiliarDuration()--TODO: deze gebruiken inplaats van chatmessage
+    local value = API.VB_FindPSettinOrder(1786, 0).state
+    if value == 0 then return 0 end
+    return (math.floor(value / 2.1333333)) / 60
+  end
+
+local function RenewFamiliar() 
     if fail > 3 then 
         API.logError("couldn't renew familiar.")
         API.Write_LoopyLoop(false)
         return
     end
-
-    if not isAtLocation(AREA.WARETREAT, 50) then 
-        TeleportWarRetreat()
-    end
-
-    if API.GetSummoningPoints_() < 400 then 
-        API.logDebug("Info: Renew summoning points.")
-        renewSummoningPoints()
-    end
-    
-    if not API.BankOpen2() then 
-        API.DoAction_Object1(0x2e, API.OFF_ACT_GeneralObject_route1, {ID.WAR_BANK}, 50)
-        API.RandomSleep2(1000, 500, 1000)
-        API.WaitUntilMovingEnds()
-    end
-
-    if API.BankOpen2() then 
-        if API.Invfreecount_() < 2 then
-            API.logDebug("Info: Summoning: make more room in your invt.")
-            API.KeyboardPress2(0x33,0,50) 
+    if isAtLocation(AREA.WARETREAT, 50) then 
+        if API.GetSummoningPoints_() < 400 then
+            API.logDebug("Info: Renew summoning points.")
+            API.logInfo("Renewing summoning points.")
+            renewSummoningPoints() 
+        else
+            API.RandomSleep2(600,100,300)
+            API.logDebug("Doaction: Open bank.")
+            API.DoAction_Object1(0x2e, API.OFF_ACT_GeneralObject_route1, {ID.WAR_BANK}, 50)
             API.RandomSleep2(1000, 500, 1000)
+            if isBankpinInterfacePresent() then
+                API.RandomSleep2(5000, 500, 1000)
+            end
+            if API.Invfreecount_() < 2 then
+                API.logDebug("Info: Summoning: make more room in your invt.")
+                API.KeyboardPress2(0x33,0,50)
+                API.RandomSleep2(1000, 500, 1000)
+            else
+                API.DoAction_Bank(selectedFamiliar, 1, API.OFF_ACT_GeneralInterface_route)
+                API.RandomSleep2(1000, 500, 1000)        
+                API.KeyboardPress2(0x1B, 50, 150)
+                API.RandomSleep2(1000, 500, 1000)
+            end 
         end
-
-        API.DoAction_Bank(selectedFamiliar, 1, API.OFF_ACT_GeneralInterface_route)
-        API.RandomSleep2(1000, 500, 1000)
-
-        API.KeyboardPress2(0x1B, 50, 150)
-        API.RandomSleep2(1000, 500, 1000)
-    end
-
-    if API.InvStackSize(selectedFamiliar) < 1 then
-        API.logError("didn't find any pouches")
-        fail = fail + 1
-        return
-    end
-
-    if API.DoAction_Inventory2({ selectedFamiliar }, 0, 1, API.OFF_ACT_GeneralInterface_route) or API.DoAction_Ability_Direct(SelectedAB, 1, API.OFF_ACT_GeneralInterface_route) then
-    API.RandomSleep2(600,100,300)
-    API.WaitUntilMovingEnds()
-    OpenInventoryIfNeeded()
-    end
-
-    if API.CheckFamiliar() then 
-        fail = 0
+        if API.InvStackSize(selectedFamiliar) < 1 then
+            API.logError("didn't find any pouches")
+            fail = fail + 1
+            return
+        end    
+        if API.DoAction_Inventory2({ selectedFamiliar }, 0, 1, API.OFF_ACT_GeneralInterface_route) or API.DoAction_Ability_Direct(SelectedAB, 1, API.OFF_ACT_GeneralInterface_route) then
+            API.RandomSleep2(600,100,300)
+            API.WaitUntilMovingEnds()
+            OpenInventoryIfNeeded()
+            API.RandomSleep2(600,100,300)
+            teleportToEdgeville()
+        end    
+        if API.CheckFamiliar() then 
+            fail = 0
+        end
+    else 
+        TeleportWarRetreat()
     end
 end
 
@@ -627,6 +577,70 @@ local function familiar()
     end 
 end
 --------------------SUMMONING-------------------
+--------------------SOUL ALTAR------------------
+local function RuneCounters()
+    if API.EquipSlotEq1(0, 32357) and API.EquipSlotEq1(4, 32581) and API.EquipSlotEq1(6, 32582) and API.EquipSlotEq1(7, 32360) and API.EquipSlotEq1(8, 32361) then
+        API.logDebug("Found:  Infinity ethereal outfit")
+        runecount = runecount + 12;
+        API.logDebug("Deposit body: You deposit " .. runecount .. " essence into the charger")
+    end
+    if API.EquipSlotEq1(0, 32347) and API.EquipSlotEq1(4, 32348) and API.EquipSlotEq1(6, 32349) and API.EquipSlotEq1(7, 32350) and API.EquipSlotEq1(8, 32351) then
+        API.logDebug("Found:  Blood ethereal outfit")
+        runecount = runecount + 6;
+        API.logDebug("Deposit body: You deposit " .. runecount .. " essence into the charger")
+    end
+    if API.EquipSlotEq1(0, 32352) and API.EquipSlotEq1(4, 32353) and API.EquipSlotEq1(6, 32354) and API.EquipSlotEq1(7, 32355) and API.EquipSlotEq1(8, 32356) then
+        API.logDebug("Found:  Death ethereal outfit")
+        runecount = runecount + 6;
+        API.logDebug("Deposit body: You deposit " .. runecount .. " essence into the charger")
+    end
+    if API.EquipSlotEq1(0, 32342) and API.EquipSlotEq1(4, 32343) and API.EquipSlotEq1(6, 32344) and API.EquipSlotEq1(7, 32345) and API.EquipSlotEq1(8, 32346) then
+        API.logDebug("Found:  Law ethereal outfit")
+        runecount = runecount + 6;
+        API.logDebug("Deposit body: You deposit " .. runecount .. " essence into the charger")
+    end
+    if API.CheckInvStuff0(24205) then
+        API.logDebug("Found: Massive pouch")
+        runecount = runecount + 18;
+        API.logDebug("Deposit Massive pouch: You deposit " .. runecount .. " essence into the charger")
+    end
+    if API.CheckInvStuff0(5514) then
+        API.logDebug("Found: Giant pouch")
+        runecount = runecount + 12;
+        API.logDebug("Deposit Giant pouch: You deposit " .. runecount .. " essence into the charger")
+    end
+    if API.CheckInvStuff0(5512) then
+        API.logDebug("Found: Large pouch")
+        runecount = runecount + 9;
+        API.logDebug("Deposit Large pouch: You deposit " .. runecount .. " essence into the charger")
+    end
+    if API.CheckInvStuff0(5510) then
+        API.logDebug("Found: Medium pouch")
+        runecount = runecount + 6;
+        API.logDebug("Deposit Medium pouch: You deposit " .. runecount .. " essence into the charger")
+    end
+    if API.CheckInvStuff0(5509) then
+        API.logDebug("Found: Small pouch")
+        runecount = runecount + 3;
+        API.logDebug("Deposit Small pouch: You deposit " .. runecount .. " essence into the charger")
+    end
+    if (aioSelectF.string_value == "Abyssal parasite") then
+        API.logDebug("Found: Abyssal parasite")
+        runecount = runecount + 7;
+        API.logDebug("Deposit Abyssal parasite: You deposit " .. runecount .. " essence into the charger")
+    end
+    if (aioSelectF.string_value == "Abyssal lurker") then
+        API.logDebug("Found: Abyssal lurker")
+        runecount = runecount + 12;
+        API.logDebug("Deposit Abyssal lurker: You deposit " .. runecount .. " essence into the charger")
+    end
+    if (aioSelectF.string_value == "Abyssal titan") then
+        API.logDebug("Found: Abyssal titan")
+        runecount = runecount + 20;
+        API.logDebug("Deposit Abyssal titan: You deposit " .. runecount .. " essence into the charger")
+    end
+end
+--------------------SOUL ALTAR------------------
 -----------------------PVP----------------------
 local function hasTarget()
     if API.GetInCombBit() then
@@ -646,11 +660,19 @@ local function isWildernissInterfacePresent()
     local result = API.ScanForInterfaceTest2Get(true, WildernissInterface)
     if #result > 0 then
         API.logDebug("Info: Wildy interface seen!")
+        API.logInfo("Found wilderniss warning interface!")
         API.DoAction_Interface(0xffffffff,0xffffffff,0,382,13,-1,2912);
         API.RandomSleep2(3000, 500, 1000)
         API.DoAction_Interface(0xffffffff,0xffffffff,0,382,8,-1,2912);
 
     end
+end
+
+local function Goback()
+    API.logWarn("Running back and logging out, been PKed!")
+    API.DoAction_Tile(WPOINT.new(3096 + math.random(-6, 6), 3517 + math.random(-2, 2), 0))
+    sleep()
+    Logout()
 end
 -----------------------PVP----------------------
 ---------------------CHECKS---------------------
@@ -695,11 +717,6 @@ local function invCheck()
         check(warCheck, "You need to have War's Retreat Teleport on your action bar")
     end
 
-    if not API.GetABs_name1("Wilderness sword").enabled then
-        local edgeCheck = API.GetABs_name1("Edgeville Lodestone").enabled
-        check(edgeCheck, "You need to have Edgevilage loodstone Teleport on your action bar")
-    end
-
     firstRun = false
     return #errors == 0
 end
@@ -708,59 +725,36 @@ end
 local function Walk()  
     if isAtLocation(AREA.EDGEVILLE_LODESTONE, 10) or  isAtLocation(AREA.EDGEVILLE_BANK, 10) or  isAtLocation(AREA.EDGEVILLE, 10) then
         sleep()       
-        if invContains(ID.ESSENCE) then
+        if API.InvFull_() and invContains(ID.ESSENCE) then
             if p.y < 3521 then
-                API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
+                API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, --[[65086,]] 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
                 API.logDebug("Doaction: Wildy wall")
                 sleep()
+                if needDemonicSkull and isBankpinInterfacePresent() then
+                    API.RandomSleep2(5000, 500, 1000)
+                end
+                API.RandomSleep2(500, 150, 150)
+                if needDemonicSkull and isWildernissInterfacePresent() then 
+                    API.logDebug("Found wildy warning! (Demonic Skull)")
+                    API.RandomSleep2(500, 150, 150)
+                    API.WaitUntilMovingandAnimEnds()
+                end
             end    
         else
             API.RandomSleep2(500, 0, 0)
             API.WaitUntilMovingandAnimEnds() 
             API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route4, { ID.BANK_NPC }, 100)
+            if isBankpinInterfacePresent() then
+                API.RandomSleep2(5000, 500, 1000)
+            end
             API.logDebug("Doaction: Bank")
         end 
----------------------Demonic Skull
-    elseif needDemonicSkull and isAtLocation(AREA.WILDY, 50) then
-        if not hasTarget() then
-            if API.PInArea(3089, 50, 3523, 1) then
-                local tile = WPOINT.new(3103 + math.random(-4, 4), 3550 + math.random(-4, 4), 0)
-                walkToTile(tile)
-                API.logDebug("Walk to mage (Demonic Skull)")
-                API.RandomSleep2(500, 500, 600)
-            else
-                if p.y < 3521 then
-                    API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
-                    API.logDebug("Doaction: Wildy wall (Demonic Skull)")
-                    API.RandomSleep2(500, 150, 150)
-                    API.WaitUntilMovingandAnimEnds()
-                    API.RandomSleep2(1500, 150, 150)
-                    if isWildernissInterfacePresent() then 
-                        API.logDebug("Found wildy warning! (Demonic Skull)")
-                        API.RandomSleep2(500, 150, 150)
-                        API.WaitUntilMovingandAnimEnds()
-                    end
-                end
-            end
-            if API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route, { ID.MAGE }, 50) then
-                API.logDebug("Doaction: Mage (Demonic Skull)")
-                sleep()
-            end
-        else
-            API.logWarn("Running back and logging oud, been PKed!")
-            local tile = WPOINT.new(3096 + math.random(-6, 6), 3517 + math.random(-2, 2), 0)
-            walkToTile(tile) 
-            sleep()
-            Logout()
-        end
----------------------Demonic Skull
-    elseif isAtLocation(AREA.WILDY, 50) then
+    elseif isAtLocation(AREA.WILDY, 50) and not SurgeDiveAbillity then
         sleep()
         if API.PInArea(3089, 50, 3523, 1) then
-            local tile = WPOINT.new(3103 + math.random(-4, 4), 3550 + math.random(-4, 4), 0)
-            walkToTile(tile)
-            API.logDebug("Walk to mage")
-            API.RandomSleep2(500, 500, 600)
+            API.DoAction_Tile(WPOINT.new(3103 + math.random(-4, 4), 3550 + math.random(-4, 4), 0))
+            API.logDebug("Walk to Mage of Zamorak")
+            API.RandomSleep2(250, 500, 600)
         else
             if p.y < 3521 then
                 API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
@@ -769,8 +763,38 @@ local function Walk()
             end
         end
         if API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route, { ID.MAGE }, 50) then
-            API.logDebug("Doaction: Mage")
+            API.logDebug("Doaction: Mage of Zamorak")
             sleep()
+        end
+    elseif isAtLocation(AREA.WILDY, 50) and SurgeDiveAbillity then
+        sleep()
+        if API.PInArea(3089, 50, 3523, 1) then
+            if SurgeDiveAbillity then
+                API.DoAction_Ability("Surge", 1, API.OFF_ACT_GeneralInterface_route)
+                API.logDebug("Doaction: Surge 1")
+                sleep()
+                API.DoAction_Tile(WPOINT.new(3103 + math.random(-4, 4), 3550 + math.random(-4, 4), 0))
+                API.RandomSleep2(1800, 500, 1000)
+                API.DoAction_Surge_Tile(WPOINT.new(3103 + math.random(-4, 4), 3550 + math.random(-4, 4), 0), 0)
+                API.logDebug("Doaction: Surge 2")
+                sleep()
+                API.DoAction_Dive_Tile(WPOINT.new(3104 + math.random(-2, 2), 3556 + math.random(-2, 2), 0))
+                API.logDebug("Doaction: Dive")
+                sleep()
+                API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route, { ID.MAGE }, 50)
+            else
+                API.RandomSleep2(3000, 500, 1000)
+                API.DoAction_Tile(WPOINT.new(3103 + math.random(-4, 4), 3550 + math.random(-4, 4), 0))
+                API.logDebug("Walk to Mage of Zamorak")
+                API.RandomSleep2(250, 500, 600)
+            end
+        else
+            API.RandomSleep2(1500, 500, 1000)
+            if p.y < 3521 then
+                API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
+                API.logDebug("Doaction: Wildy wall (Safty Check)")
+                sleep()
+            end
         end
 ---------------------Inner circle 
     elseif not needNexusMod and isAtLocation(AREA.ABBY, 50) then 
@@ -817,10 +841,87 @@ local function Walk()
         end
 ---------------------Inner circle 
     elseif needNexusMod and isAtLocation(AREA.ABBY, 15) then
+        API.RandomSleep2(500, 650, 500)
         API.DoAction_Object1(0x29,0,{ selectedPortal },50);
-        API.logDebug("Clicking on:" .. selectedPortal .."")
-        sleep()  
-    elseif isAtLocation(selectedArea, 25) then
+        API.logDebug("Doaction: Clicking on:" .. selectedPortal .."")
+        API.logInfo("Enter rift.")  
+        sleep()   
+---------------------Soulrune
+    elseif Soul == true  and isAtLocation(selectedArea, 25) then
+        if runecount < 100 then
+            if invContains(ID.ESSENCE) then
+                if API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route0,{ ID.CHARGER },50) then
+                    runecount = runecount + API.InvItemcount_1(7936)
+                    API.logDebug("Deposit Inv.: You deposit " .. runecount .. " essence into the charger")
+                    API.RandomSleep2(1000, 50, 100)
+                    RuneCounters()                
+                    API.RandomSleep2(300, 50, 100)
+                    API.logDebug("Charger: You deposit " .. runecount .. " essence into the charger")
+                    API.logInfo("Charger: You deposit " .. runecount .. " essence into the charger")
+                end
+            API.RandomSleep2(2500, 500, 1000)
+            elseif runecount < 100 then
+                teleportToEdgeville()
+                API.logDebug("Not enough essence, time to bank!")
+                API.logInfo("Not enough essence, time to bank!")
+                sleep()   
+            end
+        end
+        if runecount == 100 or runecount > 100 then  
+            API.RandomSleep2(1000, 500, 1000)
+            if not API.isProcessing() then      
+                API.RandomSleep2(300, 50, 100)  
+                if API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route1,{ ID.CHARGER },50) then 
+                    API.RandomSleep2(750, 500, 1000)
+                    Soulcound = 1
+                    API.logDebug("Soulcounter set to: " .. Soulcound .. "")
+                    API.RandomSleep2(3000, 500, 1000)
+                    if not API.isProcessing() and Soulcound == 1 and SoulRun == 3 then
+                        SoulRun = SoulRun + 1
+                        API.logDebug("Total Soulrun: " .. SoulRun .. ". Need to be 4 before crafting runes!")
+                    end
+                end
+            end
+            if not API.isProcessing() and Soulcound == 1 and SoulRun < 3 then
+                API.logDebug("Info: Done chargering, time For the next run!")
+                SoulRun = SoulRun + 1
+                runecount = 0
+                API.logDebug("Total Soulrun: " .. SoulRun .. ". Need to be 4 before crafting runes!")
+                API.logDebug("Reset Runecounter to: " .. runecount .. "")
+                teleportToEdgeville()
+                sleep()
+            end            
+            if not API.isProcessing() and Soulcound == 1 and SoulRun == 4 or SoulRun > 4 then
+                API.logDebug("Total Soulrun: " .. SoulRun .. ". you can now craft soul runes!")
+                API.logDebug("Info: Done chargering, time to craft some runes!")
+                if canUsePowerburst() and findPowerburst() then
+                    return API.DoAction_Inventory2({ 49069, 49067, 49065, 49063 }, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+                sleep()
+                API.RandomSleep2(1000, 500, 1000)
+                if API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15) then
+                    runecount = 0
+                    Soulcound = 0
+                    SoulRun = 0
+                    API.logDebug("Soulcounter set to: " .. Soulcound .. "")
+                    API.logDebug("Reset Runecounter to: " .. runecount .. "")
+                    API.logDebug("Reset SoulRun to: " .. runecount .. "")
+                end
+                sleep()
+                Trips = Trips + API.InvItemcount_1(selectedRune)
+                Runes = Runes + API.InvStackSize(selectedRune)
+                API.RandomSleep2(3000, 500, 1000)
+                teleportToEdgeville()
+                API.logDebug("Soul done! Teleporting back for LoopyLoop!")
+                API.logInfo("Soul done! Teleporting back!")
+                sleep()
+            else
+                API.RandomSleep(15000)
+                API.logDebug("Still charging, please wait")
+            end
+        end
+---------------------Soulrune
+    elseif isAtLocation(selectedArea, 25 and Soul == false) then
         if invContains(ID.ESSENCE) then
             sleep()
             if canUsePowerburst() and findPowerburst() then
@@ -829,15 +930,17 @@ local function Walk()
             end
             sleep()
             if API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15) then
-                API.logDebug("Clicking on:" .. selectedAltar .."")
-            end            
+                API.logDebug("Doaction: Clicking on:" .. selectedAltar .."")  
+                API.logInfo("Crafting Runes")              
+            end
             sleep()
-        else 
+        else
             Trips = Trips + API.InvItemcount_1(selectedRune)
-            Runes = Runes + API.InvStackSize(selectedRune)
+            Runes = Runes + API.InvStackSize(selectedRune) 
             API.DoRandomEvents()
             teleportToEdgeville()
-            API.logDebug("Info: Done! Teleporting back for LoopyLoop!")
+            API.logDebug("Info: Done! Teleporting back for LoopyLoop! test if it this one")
+            API.logInfo("Done! Teleporting back!")
             sleep()
         end
     else
@@ -848,6 +951,7 @@ local function Walk()
             API.RandomSleep2(2500, 150, 150)
             teleportToEdgeville()
             API.logDebug("Info: Unknown area Teleport to Edgeville!")
+            API.logInfo("Unknown area Teleport to Edgeville!")
             sleep()
         end
     end
@@ -869,37 +973,41 @@ end
 
 setupGUI()
 setupOptions()
-API.ScriptRuntimeString()
-API.GetTrackedSkills()
-API.SetDrawLogs(Show_Logs)
+drawGUI()
+API.SetDrawLogs(Showlogs)
 -----------------------LOOP---------------------
 while API.Read_LoopyLoop() do
     gameStateChecks()
 ---------------- UI
-    if scriptPaused then
-        if btnStop.return_click then
-            API.Write_LoopyLoop(false)
-        end
+    if btnStop.return_click then
+        API.Write_LoopyLoop(false)
+    end
+    if scriptPaused == false  then
         if btnStart.return_click then
-            IG_Back.remove = true
-            btnStart.remove = true
-            IG_Text.remove = true
-            btnStop.remove = true
-            tickJagexAcc.remove = true
-            tickNexusMod.remove = true
-            tickPouchProtector.remove = true
-            aioSelectR.remove = true
-            tickSkull.remove = true            
-            tick01.remove = true
-            tickEmpty.remove = true
-            aioSelectF.remove = true
+            btnStart.return_click = false
+            btnStart.box_name = " START "
+            scriptPaused = true
+            Soul = false
+            print("Script paused!")
+            API.logDebug("Info: Script paused!")
+        end
+    end
+    if scriptPaused == true then
+        if btnStart.return_click then
+            btnStart.return_click = false
+            btnStart.box_name = " PAUSE "
    
+            SurgeDiveAbillity = tickdive.box_ticked
             needNexusMod = tickNexusMod.box_ticked
             PouchProtector = not tickPouchProtector.box_ticked
             needDemonicSkull = tickSkull.box_ticked
             MAX_IDLE_TIME_MINUTES = (tickJagexAcc.box_ticked == 1) and 5 or 15
             scriptPaused = false
-            startTime = os.time()
+            print("Script started!")
+            API.logDebug("Info: Script started!")
+            if firstRun then
+                startTime = os.time()
+            end
    
             if (aioSelectR.return_click) then
                 aioSelectR.return_click = false
@@ -934,10 +1042,13 @@ while API.Read_LoopyLoop() do
                 print("Please select a Rune type from the dropdown menu!")
                 API.logError("Please select a Rune type from the dropdown menu!")
             end
+            if (aioSelectR.string_value == "Soul rune") then
+                Soul = true
+            end
         end
         goto continue
-    end    
--------------END UI    
+    end     
+-------------END UI 
     if firstRun and not invCheck() then
         print("!!! Startup Check Failed !!!")
         API.logError("!!! Startup Check Failed !!!")
@@ -952,7 +1063,6 @@ while API.Read_LoopyLoop() do
         API.Write_LoopyLoop(false)
         break
     end
-    drawGUI()
     if selectedFamiliar then
         if checkForVanishesMessage() then
             RenewFamiliar() 
@@ -963,9 +1073,23 @@ while API.Read_LoopyLoop() do
     API.DoRandomEvents()
 
     familiar()
+
+    if needDemonicSkull and isAtLocation(AREA.WILDY) then
+        API.logDebug("Info: Checking for getting PKed!")
+        if hasTarget() then
+            API.logDebug("Info: Targed found, Go Back!")
+            Goback()
+        end
+    end
+
     API.RandomSleep2(500, 150, 150)
     API.WaitUntilMovingandAnimEnds()
-    Walk()
+    
+    if selectedFamiliar and isAtLocation(AREA.WARETREAT, 50) then
+        API.logDebug("Waiting until a familiar is summond!")
+    else
+        Walk()
+    end
    
     API.RandomSleep2(500,500,500)
    
