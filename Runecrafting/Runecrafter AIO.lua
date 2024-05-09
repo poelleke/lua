@@ -921,7 +921,7 @@ local function Walk()
             end
         end
 ---------------------Soulrune
-    elseif isAtLocation(selectedArea, 25 and Soul == false) then
+    elseif isAtLocation(selectedArea, 25) and Soul == false then
         if invContains(ID.ESSENCE) then
             sleep()
             if canUsePowerburst() and findPowerburst() then
