@@ -3,7 +3,7 @@
     Description: Crafting runes through Abyssal dimension.
 
     Author: Valtrex
-    Version: 1.5
+    Version: 1.51
     Release Date: 02-04-2024
 
     Release Notes:
@@ -14,6 +14,7 @@
     - Version 1.31  : Support for al familiars choose them from a dropdown menu.
     - Version 1.4   : Demonic skull support (not fully tested)
     - Version 1.5   : add soul altar, the option to use surge/ dive when entering the wilde, Support for Bankpin, also made some changes to the UI. it can be pause now and when changing somting and when you restart it it wil do you change
+    - Version 1.51  : Fixed an error with powerburst and soul altar and fixed a typo causing every altar to be an unknown location except soul altar
 
     You will need:
     - War's Retreat Teleport on actionbar when using a familiar
@@ -27,12 +28,12 @@ local EQUIPMENT = require("Equipment")
 
 -----------------User Settings------------------
 local Bankpin           = xxxx-- Your Bankpin
-local Showlogs          = false-- Show log's
+local Showlogs          = true-- Show log's
 -----------------User Settings------------------
 
 local skill             = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version           = "1.5"
+local version           = "1.51"
 local selectedAltar     = nil
 local selectedPortal    = nil
 local selectedArea      = nil
@@ -867,11 +868,11 @@ local function Walk()
                 sleep()   
             end
         end
-        if runecount == 100 or runecount > 100 then  
+        if runecount == 100 or runecount > 100 and Soulcound == 0 then
             API.RandomSleep2(1000, 500, 1000)
-            if not API.isProcessing() then      
-                API.RandomSleep2(300, 50, 100)  
-                if API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route1,{ ID.CHARGER },50) then 
+            if not API.isProcessing() then
+                API.RandomSleep2(300, 50, 100)
+                if API.DoAction_Object1(0x29,API.OFF_ACT_GeneralObject_route1,{ ID.CHARGER },50) then
                     API.RandomSleep2(750, 500, 1000)
                     Soulcound = 1
                     API.logDebug("Soulcounter set to: " .. Soulcound .. "")
@@ -890,14 +891,20 @@ local function Walk()
                 API.logDebug("Reset Runecounter to: " .. runecount .. "")
                 teleportToEdgeville()
                 sleep()
-            end            
+            end
             if not API.isProcessing() and Soulcound == 1 and SoulRun == 4 or SoulRun > 4 then
                 API.logDebug("Total Soulrun: " .. SoulRun .. ". you can now craft soul runes!")
                 API.logDebug("Info: Done chargering, time to craft some runes!")
                 if canUsePowerburst() and findPowerburst() then
-                    return API.DoAction_Inventory2({ 49069, 49067, 49065, 49063 }, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                    API.DoAction_Inventory2({ 49069, 49067, 49065, 49063 }, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                    sleep()
+                    API.RandomSleep2(1000, 500, 1000)
+                    API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15)
+                else
+                    sleep()
+                    API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15)
                 end
-                sleep()
+                --[[sleep()
                 API.RandomSleep2(1000, 500, 1000)
                 if API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15) then
                     runecount = 0
@@ -906,8 +913,15 @@ local function Walk()
                     API.logDebug("Soulcounter set to: " .. Soulcound .. "")
                     API.logDebug("Reset Runecounter to: " .. runecount .. "")
                     API.logDebug("Reset SoulRun to: " .. runecount .. "")
-                end
+                end--]]
                 sleep()
+                runecount = 0
+                Soulcound = 0
+                SoulRun = 0
+                API.logDebug("Soulcounter set to: " .. Soulcound .. "")
+                API.logDebug("Reset Runecounter to: " .. runecount .. "")
+                API.logDebug("Reset SoulRun to: " .. runecount .. "")
+                API.RandomSleep2(250, 500, 600)
                 Trips = Trips + API.InvItemcount_1(selectedRune)
                 Runes = Runes + API.InvStackSize(selectedRune)
                 API.RandomSleep2(3000, 500, 1000)
@@ -930,8 +944,8 @@ local function Walk()
             end
             sleep()
             if API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15) then
-                API.logDebug("Doaction: Clicking on:" .. selectedAltar .."")  
-                API.logInfo("Crafting Runes")              
+                API.logDebug("Doaction: Clicking on:" .. selectedAltar .."")
+                API.logInfo("Crafting Runes")
             end
             sleep()
         else
