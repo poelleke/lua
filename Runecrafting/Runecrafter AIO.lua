@@ -1,32 +1,41 @@
 --[[
-    Script: Runecrafter
-    Description: Crafting runes through Abyssal dimension and city of um.
+    Author:      Valtrex
+    Version:     1.61
+    Release      Date: 02-04-2024
+    Script:      Runecrafter
+    Description: crafting runes via the abyss and necrotic runes in the City of Um. 
 
-    Author: Valtrex
-    Version: 1.6
-    Release Date: 02-04-2024
+    All you have to do is set up your preset. The scripts use the load last preset
+    For the abyss it uses the Wildy Sword or Edgevilage Teleport back for banking. 
+    For necrotic runes it uses the City of um loadstone or Tome of um (2) to go the smity area. it also uses the brachlet to teleport to Haunt on the Hill.
+    In addition, it has support for all summoning familiars that are used in runecrafting and renews them when time is almost up.
 
     Release Notes:
-    - Version 1.0   : Initial release.
-    - Version 1.1   : Updated procesbar, added startup check and added Powerburst.
-    - Version 1.2   : Added Summoning support!
-    - Version 1.3   : Outer ring support.
+    - Version 1.00  : Initial release.
+    - Version 1.10  : Updated procesbar, added startup check and added Powerburst.
+    - Version 1.20  : Added Summoning support!
+    - Version 1.30  : Outer ring support.
     - Version 1.31  : Support for al familiars choose them from a dropdown menu.
-    - Version 1.4   : Demonic skull support (not fully tested)
-    - Version 1.5   : add soul altar, the option to use surge/ dive when entering the wilde, Support for Bankpin, also made some changes to the UI. it can be pause now and when changing somting and when you restart it it wil do you change
+    - Version 1.40  : Demonic skull support (not fully tested)
+    - Version 1.50  : Add soul altar, the option to use surge/ dive when entering the wilde, Support for Bankpin, also made some changes to the UI. it can be pause now and when changing somting and when you restart it it wil do you change
     - Version 1.51  : Fixed an error with powerburst and soul altar and fixed a typo causing every altar to be an unknown location except soul altar
     - Version 1.52  : - Add Dead's xp tracker and removed de xp from the procesbar. (thanks to higgins for the updated version)
                       - used deads log to show difrend types of prints (Debug, info, warnings and error's)
                       - Repositioned the procesbar.
                       - Start UI removed, because we now have load last script.
-    - Version 1.6   : Add necrotic runes
+    - Version 1.60  : Add necrotic runes
+    - Version 1.60  : Fixed an issu when banking and not loading a full inventory
 
 
     You will need:
-    - wildy sword on abilitybar or edgevillage lodestone on abilitybar for teleporting back to the bank.
     - War's Retreat Teleport on actionbar when using a familiar
-    - Nexus Mod relic power
     - bank uses: "load last preset"
+
+    When doing abyss runes:
+    - wildy sword on abilitybar or edgevillage lodestone on abilitybar for teleporting.
+    When doing necrotic runes:
+    - Tome of um (2) on abilitybar or City of Um lodestone on abilitybar for teleporting.
+    - Passing bracelet on abilitybar, when using the Haunt on the Hill teleport
 
 ]]
 
@@ -40,7 +49,7 @@ local Showlogs          = false-- Show log's
 
 local skill             = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version           = "1.6"
+local version           = "1.61"
 local selectedAltar     = nil
 local selectedPortal    = nil
 local selectedArea      = nil
@@ -60,6 +69,7 @@ local runecount         = 0
 local Soulcound         = 0
 local SoulRun           = 0
 local familiarrenew     = 0
+local banking           = 0
 local startTime, afk    = os.time(), os.time()
 local errors            = {}
 local needNexusMod
@@ -129,7 +139,7 @@ local ID_Object             = {
                        65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090,
                        65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103,
                        65104, 65100, 65099, 65098, 65097, 1440,  1442,  1441,
-                       1444,  1443 },
+                       1444,  1443 },--65086
 
 }
 
@@ -305,6 +315,16 @@ local function drawGUI()
 end
 -----------------------UI-----------------------
 --------------------FUNCTIONS-------------------
+local function invContains(items)
+    local loot = API.InvItemcount_2(items)
+    for _, v in ipairs(loot) do
+        if v > 0 then
+            return true
+        end
+    end
+    return false
+end
+
 local function getABS_id(id, name)
     for i = 0, 4, 1 do
         local ab = API.GetAB_id(i, id)
@@ -343,6 +363,36 @@ local function isBankpinInterfacePresent()
     if #result > 0 then
         API.logDebug("Info: Bankpin interface found!")
         API.logInfo("Bankpin interface found!")
+    end
+end
+
+local function Bank()
+    banking = 1
+    sleep()
+    if fail > 3 then
+        API.logError("couldn't bank properly.")
+        API.Write_LoopyLoop(false)
+        return
+    end
+    if Necro == true then
+        sleep()
+        API.DoAction_Object1(0x33, API.OFF_ACT_GeneralObject_route3, { ID_Bank.BANK_UM }, 50)
+        API.logDebug("Use bank: City of Um!")
+    else
+        sleep()
+        API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route4, { ID_Bank.BANK_NPC }, 50)
+        API.logDebug("Use bank: Edgeville!")
+    end
+
+    if API.InvItemcount_1(55667) >= 16  or API.InvItemcount_1(7936) >= 16 or API.InvItemcount_1(18178) >= 16 then
+        API.logDebug("Found 16 or more essence!")
+        banking = 0
+        fail = 0
+    end
+    if API.Invfreecount_() > 5 then
+        API.logError("Didn't get a full inventory!")
+        fail = fail + 1
+        return
     end
 end
 --------------------FUNCTIONS-------------------
@@ -407,8 +457,7 @@ local function teleportToHauntHill()
             if hh.enabled then
                 API.DoAction_Ability_Direct(hh, 7, API.OFF_ACT_GeneralInterface_route)
                 API.RandomSleep2(1000, 1000, 1000)
-                API.logDebug("Info: Use Haunt on the Hill teleport")
-                API.logInfo("Use Haunt on the Hill teleport.")
+                API.logDebug("pressing 2 key button.")
                 API.KeyboardPress2(0x32, 60, 100)
                 API.RandomSleep2(1000, 1000, 1000)
             end
@@ -594,6 +643,7 @@ local function familiar()
 end
 --------------------SUMMONING-------------------
 --------------------SOUL ALTAR------------------
+--HELM = 0, CAPE = 1, AMULET = 2, WEAPON = 3, BODY =  4, OFFHAND = 5, BOTTOM = 6, GLOVES = 7, BOOTS = 8, RING = 9, AMMO = 10, AURA = 11 POCKET = 17
 local function RuneCounters()
     if API.EquipSlotEq1(0, 32357) and API.EquipSlotEq1(4, 32581) and API.EquipSlotEq1(6, 32582) and API.EquipSlotEq1(7, 32360) and API.EquipSlotEq1(8, 32361) then
         API.logDebug("Found:  Infinity ethereal outfit")
@@ -692,16 +742,6 @@ local function Goback()
 end
 -----------------------PVP----------------------
 ---------------------CHECKS---------------------
-local function invContains(items)
-    local loot = API.InvItemcount_2(items)
-    for _, v in ipairs(loot) do
-        if v > 0 then
-            return true
-        end
-    end
-    return false
-end
-
 local function check(condition, errorMessage)
     local result = condition
     if type(condition) == "function" then
@@ -718,11 +758,9 @@ local function invCheck()
         check(PouchCheck, "It's recomended to use the Pouch Protector relic, the scrips does not repair it for you!")
     end
 
-    -- Level checks    
     local hasRequiredLevel = API.XPLevelTable(API.GetSkillXP("WOODCUTTING")) >= 30 or API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 or API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 or API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 or API.XPLevelTable(API.GetSkillXP("FIREMAKING")) >= 30
     check(hasRequiredLevel, "You need at least Level 30 in Woodcuting, Mining, Thieving, Agility or Firemaking")
 
-    -- Action bar checks
     if selectedFamiliar then
         local warCheck = API.GetABs_name1("War's Retreat Teleport").enabled
         check(warCheck, "You need to have War's Retreat Teleport on your action bar")
@@ -736,7 +774,7 @@ end
 local function Walk()
     if isAtLocation(AREA.EDGEVILLE_LODESTONE, 10) or  isAtLocation(AREA.EDGEVILLE_BANK, 10) or  isAtLocation(AREA.EDGEVILLE, 10) then
         sleep()
-        if API.InvFull_() and invContains(ID_Items.ESSENCE) then
+        if banking == 0 and invContains(ID_Items.ESSENCE) then
             if p.y < 3521 then
                 API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
                 API.logDebug("Doaction: Wildy wall")
@@ -754,8 +792,7 @@ local function Walk()
         else
             API.RandomSleep2(500, 0, 0)
             API.WaitUntilMovingandAnimEnds()
-            API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route4, { ID_Bank.BANK_NPC }, 100)
-            API.logDebug("Doaction: Bank")
+            Bank()
         end
     elseif isAtLocation(AREA.WILDY, 50) and not SurgeDiveAbillity then
         sleep()
@@ -765,7 +802,7 @@ local function Walk()
             API.RandomSleep2(250, 500, 600)
         else
             if p.y < 3521 then
-                API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65086, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
+                API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
                 API.logDebug("Doaction: Wildy wall (Safty Check)")
                 sleep()
             end
@@ -978,18 +1015,15 @@ local function WalkNecro()
     elseif isAtLocation(AREA.UM_Smithy, 15) then
         API.logDebug("Location found: Um Smithy.")
         sleep()
-        if API.InvFull_() and invContains(ID_Items.IMPURE_ESSENCE) then
+        if banking == 0 and invContains(ID_Items.IMPURE_ESSENCE) then
             if invContains(ID_Items.PASSING_BRACLET) or API.EquipSlotEq1(7, 56416) then
                 API.logDebug("Item found: Passing Braclet.")
                 teleportToHauntHill()
-            else
-                API.DoAction_Object1(0x39, API.OFF_ACT_GeneralObject_route0, {ID_Object.DARK_PORTAL}, 50)
-                sleep()
             end
         else
             sleep()
-            API.DoAction_Object1(0x33, API.OFF_ACT_GeneralObject_route3, { ID_Bank.BANK_UM }, 50)
-            API.logDebug("Doaction: Bank (load last preset!)")
+            Bank()
+            sleep()
         end
     elseif isAtLocation(AREA.UM_HauntHill, 5) then
         API.logDebug("Location found: Haunt Hill.")
