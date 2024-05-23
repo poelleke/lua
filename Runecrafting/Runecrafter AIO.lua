@@ -342,7 +342,7 @@ end
 
 local function sleep()
     API.RandomSleep2(250, 0, 0)
-    API.WaitUntilMovingandAnimEnds()
+    API.WaitUntilMovingEnds()
 end
 
 local function Logout()
@@ -472,7 +472,7 @@ local function TeleportWarRetreat()
         API.logInfo("Teleport to War's Retreat.")
         API.DoAction_Ability_Direct(API.GetABs_name1("War's Retreat Teleport"), 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(2000,1000,2000)
-        API.WaitUntilMovingandAnimEnds()
+        API.WaitUntilMovingEnds()
     else
         teleportToDestination("War's Retreat")
     end
@@ -485,7 +485,7 @@ local function teleportToUM()
         API.logInfo("Use Tome of Um teleport.")
         API.DoAction_Ability_Direct(um, 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(2000,1000,2000)
-        API.WaitUntilMovingandAnimEnds()
+        API.WaitUntilMovingEnds()
     else
         teleportToDestination("City of UM", true)
     end
@@ -539,7 +539,7 @@ end
 local function renewSummoningPoints()
     API.DoAction_Object1(0x3d,API.OFF_ACT_GeneralObject_route0,{ID_Object.ALTAR_OF_WAR} ,50)
     API.RandomSleep2(600,0,0)
-    API.WaitUntilMovingandAnimEnds()
+    API.WaitUntilMovingEnds()
     API.RandomSleep2(1200,0,0)
 end
 
@@ -786,12 +786,12 @@ local function Walk()
                 if needDemonicSkull and isWildernissInterfacePresent() then
                     API.logDebug("Found wildy warning! (Demonic Skull)")
                     API.RandomSleep2(500, 150, 150)
-                    API.WaitUntilMovingandAnimEnds()
+                    API.WaitUntilMovingEnds()
                 end
             end
         else
             API.RandomSleep2(500, 0, 0)
-            API.WaitUntilMovingandAnimEnds()
+            API.WaitUntilMovingEnds()
             Bank()
         end
     elseif isAtLocation(AREA.WILDY, 50) and not SurgeDiveAbillity then
@@ -1236,7 +1236,7 @@ while API.Read_LoopyLoop() do
     end
 
     API.RandomSleep2(500, 150, 150)
-    API.WaitUntilMovingandAnimEnds()
+    API.WaitUntilMovingEnds()
 
     if selectedFamiliar and isAtLocation(AREA.WARETREAT, 50) then
         API.logDebug("Waiting until a familiar is summond!")
