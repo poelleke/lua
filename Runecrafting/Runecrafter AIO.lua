@@ -1019,6 +1019,8 @@ local function WalkNecro()
             if invContains(ID_Items.PASSING_BRACLET) or API.EquipSlotEq1(7, 56416) then
                 API.logDebug("Item found: Passing Braclet.")
                 teleportToHauntHill()
+            else
+                API.DoAction_Object1(0x39, API.OFF_ACT_GeneralObject_route0, {ID_Object.DARK_PORTAL}, 50)
             end
         else
             sleep()
