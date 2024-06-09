@@ -44,7 +44,7 @@ local UTILS             = require("utils")
 
 -----------------User Settings------------------
 local Bankpin           = xxxx-- Your Bankpin
-local Showlogs          = false-- Show log's
+local Showlogs          = true-- Show log's
 -----------------User Settings------------------
 
 local skill             = "RUNECRAFTING"
@@ -501,7 +501,6 @@ end
 --------------------POWERBURST------------------
 --------------------SUMMONING-------------------
 local function hasfamiliar()
-    API.logDebug("Info: Check if has familliar!")
     return API.Buffbar_GetIDstatus(26095).id > 0
 end
 
@@ -1208,7 +1207,7 @@ while API.Read_LoopyLoop() do
             if familiarrenew == 1 and not API.isProcessing() then
                 RenewFamiliar()
             elseif not hasfamiliar() and not API.isProcessing() then
-                API.logDebug("Info: Familliar check")
+                API.logDebug("Info: No familliar found!")
                 RenewFamiliar()
                 familiarrenew = 1
             else
@@ -1218,20 +1217,20 @@ while API.Read_LoopyLoop() do
         --NECRO RUNES
         if Necro == true and familiarrenew == 0 then
             if isAtLocation(AREA.UM_Lodestone, 25) then
-                API.logDebug("Location found: Um Loadestone.")
+                --API.logDebug("Location found: Um Loadestone.")
                 Lodestone()
             elseif isAtLocation(AREA.UM_Smithy, 15) then
                 InventoryCheck()
-                API.logDebug("Checking Inventory.")
+                --API.logDebug("Checking Inventory.")
             elseif isAtLocation(AREA.UM_HauntHill, 5) then
                 API.logDebug("Location found: Haunt Hill.")
                 Haunthill()
             elseif isAtLocation(AREA.UM_Portal, 10) then
                 Counter = true
-                API.logDebug("Location found: Dark Portal.")
+                --API.logDebug("Location found: Dark Portal.")
                 Portal()
             elseif isAtLocation(AREA.Necromantic_Rune_Temple, 50) then
-                API.logDebug("Location found: Necromantic Rune Themple.")
+                --API.logDebug("Location found: Necromantic Rune Themple.")
                 Craftnecro()
             elseif not isAtLocation(AREA.UM_Lodestone) or not isAtLocation(AREA.UM_Smithy) or not isAtLocation(AREA.UM_HauntHill) or not isAtLocation(AREA.UM_Portal) or not isAtLocation(AREA.Necromantic_Rune_Temple) or not isAtLocation(AREA.WARETREAT, 50) then
                 UnknownNecroLoacation()
@@ -1239,15 +1238,14 @@ while API.Read_LoopyLoop() do
         end
         --NORMAL RUNES
         if Necro == false and familiarrenew == 0 then
-            API.logDebug("Normal rune selected!")
             if isAtLocation(AREA.EDGEVILLE_LODESTONE, 10) or  isAtLocation(AREA.EDGEVILLE_BANK, 10) or  isAtLocation(AREA.EDGEVILLE, 10) then
-                API.logDebug("Location found: Edgevillage.")
+                --API.logDebug("Location found: Edgevillage.")
                 if p.y < 3521 then
                     InventoryCheck()
                     API.logDebug("Checking Inventory.")
                 end
             elseif isAtLocation(AREA.WILDY, 50) then
-                API.logDebug("Location found: Wildy.")
+                --API.logDebug("Location found: Wildy.")
                 if API.PInArea(3089, 50, 3523, 1) then
                     API.logDebug("Location found: wildy near wall.")
                     if SurgeDiveAbillity then
@@ -1256,7 +1254,7 @@ while API.Read_LoopyLoop() do
                         WalkToMage()
                     end
                 elseif API.PInArea(3107, 10, 3559, 10) then
-                    API.logDebug("Location found: Near Mage.")
+                    --API.logDebug("Location found: Near Mage.")
                     DoMage()
                 elseif not API.ReadPlayerMovin() and p.y < 3521 then
                     API.logDebug("Location found: Wildy but on the wrong side of the wall.")
@@ -1265,14 +1263,14 @@ while API.Read_LoopyLoop() do
                 end
             elseif isAtLocation(AREA.ABBY, 50) then
                 Counter = true
-                API.logDebug("Location found: Abbys.")
+                --API.logDebug("Location found: Abbys.")
                 if needNexusMod then
                     Abbys()
                 else
                     InnerCircle()
                 end
             elseif isAtLocation(selectedArea, 25) and Soul == false then
-                API.logDebug("Location found: Altar.")
+                --API.logDebug("Location found: Altar.")
                 if invContains(ID_Items.ESSENCE) then
                     CraftRune()
                 else
@@ -1312,7 +1310,6 @@ while API.Read_LoopyLoop() do
                     end
                 end
                 if runecount == 100 or runecount > 100 and Soulcound == 1 then
-
                     API.RandomSleep2(1000, 500, 1000)
                     if not API.isProcessing() then
                         API.RandomSleep2(300, 50, 100)
@@ -1337,39 +1334,35 @@ while API.Read_LoopyLoop() do
                 end
                 if SoulRun == 3 and Soulcound == 2  and not API.isProcessing()  then
                     SoulRun = SoulRun + 1
-                    API.logDebug("Total Soulrun: " .. SoulRun .. ". Need to be 4 before crafting runes!")
-                end
-                if SoulRun == 4 or SoulRun > 4 and Soulcound == 2 and not API.isProcessing()  then
-                    if API.ReadPlayerMovin2() then
-                        API.logDebug("Total Soulrun: " .. SoulRun .. ". you can now craft soul runes!")
-                        API.logDebug("Info: Done chargering, time to craft some runes!")
-                        if canUsePowerburst() and findPowerburst() then
-                            API.DoAction_Inventory2({ 49069, 49067, 49065, 49063 }, 0, 1, API.OFF_ACT_GeneralInterface_route)
-                            API.RandomSleep2(1000, 500, 1000)
-                            API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15)
-                        else
-                            API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15)
-                        end
-                        runecount = 0
-                        Soulcound = 0
-                        SoulRun = 0
-                        API.logDebug("Soulcounter set to: " .. Soulcound .. "")
-                        API.logDebug("Reset Runecounter to: " .. runecount .. "")
-                        API.logDebug("Reset SoulRun to: " .. runecount .. "")
-                        API.RandomSleep2(250, 500, 600)
-                        if Counter == true then
-                            Trips = Trips + API.InvItemcount_1(selectedRune)
-                            Runes = Runes + API.InvStackSize(selectedRune)
-                            Counter = false
-                        end
-                        API.RandomSleep2(3000, 500, 1000)
-                        if not (API.ReadPlayerAnim() == ID_Anim.Crafting) and not API.ReadPlayerMovin2() then
-                            teleportToEdgeville()
-                        end
-                        API.logDebug("Soul done! Teleporting back for LoopyLoop!")
-                        API.logInfo("Soul done! Teleporting back!")
-                        API.RandomSleep2(1200,500,650)
+                    API.logDebug("Total Soulrun: " .. SoulRun .. ". you can now craft soul runes!")
+                    API.logDebug("Total Soulrun: " .. SoulRun .. ". you can now craft soul runes!")
+                    API.logDebug("Info: Done chargering, time to craft some runes!")
+                    if canUsePowerburst() and findPowerburst() then
+                        API.DoAction_Inventory2({ 49069, 49067, 49065, 49063 }, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                        API.RandomSleep2(1000, 500, 1000)
+                        API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15)
+                    else
+                        API.DoAction_Object1(0x42,API.OFF_ACT_GeneralObject_route0,{ selectedAltar },15)
                     end
+                    runecount = 0
+                    Soulcound = 0
+                    SoulRun = 0
+                    API.logDebug("Soulcounter set to: " .. Soulcound .. "")
+                    API.logDebug("Reset Runecounter to: " .. runecount .. "")
+                    API.logDebug("Reset SoulRun to: " .. runecount .. "")
+                    API.RandomSleep2(250, 500, 600)
+                    if Counter == true then
+                        Trips = Trips + API.InvItemcount_1(selectedRune)
+                        Runes = Runes + API.InvStackSize(selectedRune)
+                        Counter = false
+                    end
+                    API.RandomSleep2(3000, 500, 1000)
+                    if not (API.ReadPlayerAnim() == ID_Anim.Crafting) and not API.ReadPlayerMovin2() then
+                        teleportToEdgeville()
+                    end
+                    API.logDebug("Soul done! Teleporting back for LoopyLoop!")
+                    API.logInfo("Soul done! Teleporting back!")
+                    API.RandomSleep2(1200,500,650)
                 end
             elseif isAtLocation(AREA.DEATHS_OFFICE, 50) then
                 Death()
