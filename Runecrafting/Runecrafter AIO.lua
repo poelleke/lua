@@ -44,7 +44,7 @@ local UTILS             = require("utils")
 
 -----------------User Settings------------------
 local Bankpin           = xxxx-- Your Bankpin
-local Showlogs          = true-- Show log's
+local Showlogs          = false-- Show log's
 -----------------User Settings------------------
 
 local skill             = "RUNECRAFTING"
