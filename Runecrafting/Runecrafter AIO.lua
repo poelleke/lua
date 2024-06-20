@@ -25,6 +25,9 @@
                       - Start UI removed, because we now have load last script.
     - Version 1.60  : Add necrotic runes
     - Version 2     : Redone script. reduce the waitings
+    - Version 2.1   : - Add dead's Metrics instead of procesbar.
+                      - Fixed and issu for the level checks inercircle abbys (it should not look at it when using the Nexus Mod rellic or when running necrotic runes.) 
+                      - Add the right teleport option for the Passing bracelet when wearing it.
 
 
     You will need:
@@ -44,12 +47,14 @@ local UTILS             = require("utils")
 
 -----------------User Settings------------------
 local Bankpin           = xxxx-- Your Bankpin
-local Showlogs          = false-- Show log's
 -----------------User Settings------------------
 
 local skill             = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version           = "2"
+local version           = "2.1"
+local Rune_type         = ""
+local Rune              = ""
+local Familier          = "None"
 local selectedAltar     = nil
 local selectedPortal    = nil
 local selectedArea      = nil
@@ -148,7 +153,7 @@ local ID_Object             = {
                        65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090,
                        65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103,
                        65104, 65100, 65099, 65098, 65097, 1440,  1442,  1441,
-                       1444,  1443 },--65086
+                       1444,  1443 },
 
 }
 
@@ -304,23 +309,12 @@ function formatNumber(num)
     end
 end
 
-local function printProgressReport(final)
-    local elapsedMinutes = (os.time() - startTime) / 60
-    local TripsPH = round((Trips * 60) / elapsedMinutes)
-    local RunesPH = round((Runes * 60) / elapsedMinutes)
-    IGP.string_value = "Trips: " .. formatNumber(Trips) .. " | Trips/H: " .. formatNumber(TripsPH) .. " | Runes: " .. formatNumber(Runes) .. " | Runes/H: " .. formatNumber(RunesPH)
-end
-
 local function setupGUI()
     IGP = API.CreateIG_answer()
-    IGP.box_start = FFPOINT.new(1, 31, 0)
+    IGP.box_start = FFPOINT.new(30, 31, 0)
     IGP.box_name = "PROGRESSBAR"
     IGP.colour = ImColor.new(120, 4, 23);
     IGP.string_value = "Abbys Runecrafter AIO"
-end
-
-local function drawGUI()
-    DrawProgressBar(IGP)
 end
 -----------------------UI-----------------------
 --------------------FUNCTIONS-------------------
@@ -501,6 +495,7 @@ end
 --------------------POWERBURST------------------
 --------------------SUMMONING-------------------
 local function hasfamiliar()
+    API.logDebug("Info: Check if has familliar!")
     return API.Buffbar_GetIDstatus(26095).id > 0
 end
 
@@ -762,14 +757,21 @@ local function check(condition, errorMessage)
 end
 
 local function invCheck()
+    -- Inventory checks
     if invContains(ID_Items.POUCHE) then
         local PouchCheck = not PouchProtector
         check(PouchCheck, "It's recomended to use the Pouch Protector relic, the scrips does not repair it for you!")
     end
-  
-    local hasRequiredLevel = API.XPLevelTable(API.GetSkillXP("WOODCUTTING")) >= 30 or API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 or API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 or API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 or API.XPLevelTable(API.GetSkillXP("FIREMAKING")) >= 30
-    check(hasRequiredLevel, "You need at least Level 30 in Woodcuting, Mining, Thieving, Agility or Firemaking")
 
+    -- Level checks  
+    if Necro == false then
+        if not needNexusMod then
+            local hasRequiredLevel = API.XPLevelTable(API.GetSkillXP("WOODCUTTING")) >= 30 or API.XPLevelTable(API.GetSkillXP("MINING")) >= 30 or API.XPLevelTable(API.GetSkillXP("THIEVING")) >= 30 or API.XPLevelTable(API.GetSkillXP("AGILITY")) >= 30 or API.XPLevelTable(API.GetSkillXP("FIREMAKING")) >= 30
+            check(hasRequiredLevel, "You need at least Level 30 in Woodcuting, Mining, Thieving, Agility or Firemaking")
+        end
+    end
+
+    -- Action bar checks
     if selectedFamiliar then
         local warCheck = API.GetABs_name1("War's Retreat Teleport").enabled
         check(warCheck, "You need to have War's Retreat Teleport on your action bar")
@@ -777,6 +779,30 @@ local function invCheck()
 
     firstRun = false
     return #errors == 0
+end
+
+local function RuneToCraft()
+    if (aioSelectR.string_value == "Air rune") then                 Rune = "Air rune"
+    elseif(aioSelectR.string_value == "Mind rune") then             Rune = "Mind rune"
+    elseif(aioSelectR.string_value == "water rune") then            Rune = "water rune"
+    elseif(aioSelectR.string_value == "Earth rune") then            Rune = "Earth rune"
+    elseif(aioSelectR.string_value == "Fire rune") then             Rune = "Fire rune"
+    elseif(aioSelectR.string_value == "Body rune") then             Rune = "Body rune"
+    elseif(aioSelectR.string_value == "Cosmic rune") then           Rune = "Cosmic rune"
+    elseif(aioSelectR.string_value == "Chaos rune") then            Rune = "Chaos rune"
+    elseif(aioSelectR.string_value == "Nature rune") then           Rune = "Nature rune"
+    elseif(aioSelectR.string_value == "Law rune") then              Rune = "Law rune"
+    elseif(aioSelectR.string_value == "Death rune") then            Rune = "Death rune"
+    elseif(aioSelectR.string_value == "Blood rune") then            Rune = "Blood rune"
+    elseif(aioSelectR.string_value == "Soul rune") then             Rune = "Soul rune"
+    elseif(aioSelectR.string_value == "(Necro) Spirit rune") then   Rune = "Spirit rune"
+    elseif(aioSelectR.string_value == "(Necro) Bone rune") then     Rune = "Bone rune"
+    elseif(aioSelectR.string_value == "(Necro) Flesh rune") then    Rune = "Flesh rune"
+    elseif(aioSelectR.string_value == "Necro) Miasma rune") then    Rune = "Miasma rune"
+    elseif(aioSelectR.string_value == "Abyssal parasite") then      Familier = "Abyssal parasite"
+    elseif(aioSelectR.string_value == "Abyssal lurker") then        Familier = "Abyssal lurker"
+    elseif(aioSelectR.string_value == "Abyssal titan") then         Familier = "Abyssal titan"
+    end
 end
 ---------------------CHECKS---------------------
 -----------------NORMAL FUNCTIONS---------------
@@ -1034,14 +1060,17 @@ local function InventoryCheck()
                     end
                 end
             else
-                if invContains(ID_Items.PASSING_BRACLET) or API.EquipSlotEq1(7, 56416) then
-                    API.logDebug("Item found: Passing Braclet.")
+                if invContains(ID_Items.PASSING_BRACLET) then
+                    API.logDebug("Item found: Passing Braclet in inventory.")
                     teleportToHauntHill()
-                    banking = 0
-                    fail = 0
-                    API.logDebug("Banking state:" .. banking .. "")
-                    API.logDebug("Fail cound: " .. fail .. "")
+                elseif API.EquipSlotEq1(7, 56416) then
+                    API.logDebug("Item found: Passing Braclet in glove slot.")
+                    API.DoAction_Ability_Direct(API.GetABs_name1("Passing bracelet"), 2, API.OFF_ACT_GeneralInterface_route)
                 end
+                banking = 0
+                fail = 0
+                API.logDebug("Banking state:" .. banking .. "")
+                API.logDebug("Fail cound: " .. fail .. "")
             end
         end
         if banking == 2 then
@@ -1078,12 +1107,26 @@ local function gameStateChecks()
 end
 
 setupOptions()
-API.SetDrawLogs(Showlogs)
+API.SetDrawLogs(true)
 API.SetDrawTrackedSkills(true)
 setupGUI()
-
 -----------------------LOOP---------------------
 while API.Read_LoopyLoop() do
+    RuneToCraft()
+    local elapsedMinutes = (os.time() - startTime) / 60
+    local TripsPH = round((Trips * 60) / elapsedMinutes)
+    local RunesPH = round((Runes * 60) / elapsedMinutes)
+    local metrics = {
+    {"Script","AIO Runecrafter - (v" .. version .. ") by Valtrex"},
+    {"Rune type:", Rune_type},
+    {"Rune:", Rune},
+    {"Familier:", Familier},
+    {"Trips:", formatNumber(Trips)},
+    {"Trips/H:",formatNumber(TripsPH)},
+    {"Runes:",formatNumber(Runes)},
+    {"Runs",formatNumber(RunesPH)},
+    }
+    API.DrawTable(metrics)
     gameStateChecks()
 ---------------- UI
     if btnStop.return_click then
@@ -1096,13 +1139,10 @@ while API.Read_LoopyLoop() do
             btnStart.box_name = " START "
             scriptPaused = true
             Soul = false
-            print("Script paused!")
-            API.logDebug("Info: Script paused!")
         end
     end
     if scriptPaused == true then
         if btnStart.return_click then
-            drawGUI()
             btnStart.return_click = false
             btnStart.box_name = " PAUSE "
             IG_Back.remove = true
@@ -1113,7 +1153,7 @@ while API.Read_LoopyLoop() do
             tickNexusMod.remove = true
             tickPouchProtector.remove = true
             aioSelectR.remove = true
-            tickSkull.remove = true            
+            tickSkull.remove = true
             tickdive.remove = true
             tickEmpty.remove = true
             aioSelectF.remove = true
@@ -1167,6 +1207,9 @@ while API.Read_LoopyLoop() do
                 Soul = true
             elseif (aioSelectR.string_value == "(Necro) Spirit rune") or (aioSelectR.string_value == "(Necro) Bone rune") or (aioSelectR.string_value == "(Necro) Flesh rune") or (aioSelectR.string_value == "(Necro) Miasma rune") then
                 Necro = true
+                Rune_type = "Necrotic Runes"
+            else
+                Rune_type = "Normal Runes"
             end
         end
         goto continue
@@ -1189,7 +1232,6 @@ while API.Read_LoopyLoop() do
     p = API.PlayerCoordfloat()
     API.SetMaxIdleTime(MAX_IDLE_TIME_MINUTES)
     API.DoRandomEvents()
-
     if isBankpinInterfacePresent() then
         API.DoBankPin(Bankpin)
     else
@@ -1207,7 +1249,7 @@ while API.Read_LoopyLoop() do
             if familiarrenew == 1 and not API.isProcessing() then
                 RenewFamiliar()
             elseif not hasfamiliar() and not API.isProcessing() then
-                API.logDebug("Info: No familliar found!")
+                API.logDebug("Info: Familliar check")
                 RenewFamiliar()
                 familiarrenew = 1
             else
@@ -1217,20 +1259,20 @@ while API.Read_LoopyLoop() do
         --NECRO RUNES
         if Necro == true and familiarrenew == 0 then
             if isAtLocation(AREA.UM_Lodestone, 25) then
-                --API.logDebug("Location found: Um Loadestone.")
+                API.logDebug("Location found: Um Loadestone.")
                 Lodestone()
             elseif isAtLocation(AREA.UM_Smithy, 15) then
                 InventoryCheck()
-                --API.logDebug("Checking Inventory.")
+                API.logDebug("Checking Inventory.")
             elseif isAtLocation(AREA.UM_HauntHill, 5) then
                 API.logDebug("Location found: Haunt Hill.")
                 Haunthill()
             elseif isAtLocation(AREA.UM_Portal, 10) then
                 Counter = true
-                --API.logDebug("Location found: Dark Portal.")
+                API.logDebug("Location found: Dark Portal.")
                 Portal()
             elseif isAtLocation(AREA.Necromantic_Rune_Temple, 50) then
-                --API.logDebug("Location found: Necromantic Rune Themple.")
+                API.logDebug("Location found: Necromantic Rune Themple.")
                 Craftnecro()
             elseif not isAtLocation(AREA.UM_Lodestone) or not isAtLocation(AREA.UM_Smithy) or not isAtLocation(AREA.UM_HauntHill) or not isAtLocation(AREA.UM_Portal) or not isAtLocation(AREA.Necromantic_Rune_Temple) or not isAtLocation(AREA.WARETREAT, 50) then
                 UnknownNecroLoacation()
@@ -1239,13 +1281,13 @@ while API.Read_LoopyLoop() do
         --NORMAL RUNES
         if Necro == false and familiarrenew == 0 then
             if isAtLocation(AREA.EDGEVILLE_LODESTONE, 10) or  isAtLocation(AREA.EDGEVILLE_BANK, 10) or  isAtLocation(AREA.EDGEVILLE, 10) then
-                --API.logDebug("Location found: Edgevillage.")
+                API.logDebug("Location found: Edgevillage.")
                 if p.y < 3521 then
                     InventoryCheck()
                     API.logDebug("Checking Inventory.")
                 end
             elseif isAtLocation(AREA.WILDY, 50) then
-                --API.logDebug("Location found: Wildy.")
+                API.logDebug("Location found: Wildy.")
                 if API.PInArea(3089, 50, 3523, 1) then
                     API.logDebug("Location found: wildy near wall.")
                     if SurgeDiveAbillity then
@@ -1254,7 +1296,7 @@ while API.Read_LoopyLoop() do
                         WalkToMage()
                     end
                 elseif API.PInArea(3107, 10, 3559, 10) then
-                    --API.logDebug("Location found: Near Mage.")
+                    API.logDebug("Location found: Near Mage.")
                     DoMage()
                 elseif not API.ReadPlayerMovin() and p.y < 3521 then
                     API.logDebug("Location found: Wildy but on the wrong side of the wall.")
@@ -1263,14 +1305,14 @@ while API.Read_LoopyLoop() do
                 end
             elseif isAtLocation(AREA.ABBY, 50) then
                 Counter = true
-                --API.logDebug("Location found: Abbys.")
+                API.logDebug("Location found: Abbys.")
                 if needNexusMod then
                     Abbys()
                 else
                     InnerCircle()
                 end
             elseif isAtLocation(selectedArea, 25) and Soul == false then
-                --API.logDebug("Location found: Altar.")
+                API.logDebug("Location found: Altar.")
                 if invContains(ID_Items.ESSENCE) then
                     CraftRune()
                 else
@@ -1310,6 +1352,7 @@ while API.Read_LoopyLoop() do
                     end
                 end
                 if runecount == 100 or runecount > 100 and Soulcound == 1 then
+
                     API.RandomSleep2(1000, 500, 1000)
                     if not API.isProcessing() then
                         API.RandomSleep2(300, 50, 100)
@@ -1334,7 +1377,7 @@ while API.Read_LoopyLoop() do
                 end
                 if SoulRun == 3 and Soulcound == 2  and not API.isProcessing()  then
                     SoulRun = SoulRun + 1
-                    API.logDebug("Total Soulrun: " .. SoulRun .. ". you can now craft soul runes!")
+                    API.logDebug("Total Soulrun: " .. SoulRun .. ". Need to be 4 before crafting runes!")
                     API.logDebug("Total Soulrun: " .. SoulRun .. ". you can now craft soul runes!")
                     API.logDebug("Info: Done chargering, time to craft some runes!")
                     if canUsePowerburst() and findPowerburst() then
@@ -1379,7 +1422,6 @@ while API.Read_LoopyLoop() do
     API.RandomSleep2(500,500,500)
 
     ::continue::
-    printProgressReport()
     API.RandomSleep2(500, 650, 500)
 end
 -----------------------LOOP---------------------
