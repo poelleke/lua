@@ -108,12 +108,12 @@ local function setupOptions()
     IG_Back.colour = ImColor.new(15, 13, 18, 255)
     IG_Back.string_value = ""
 
-    Fight = API.CreateIG_answer()
+    --[[Fight = API.CreateIG_answer()
     Fight.box_ticked = true
     Fight.box_name = "Fight Clawdie"
     Fight.box_start = FFPOINT.new(10, 104, 0);
     Fight.colour = ImColor.new(0, 255, 0);
-    Fight.tooltip_text = "Fight Clawdie, when it spawns"
+    Fight.tooltip_text = "Fight Clawdie, when it spawns"]]
 
     ActivityA.box_name = "###ACTIVITIE"
     ActivityA.box_start = FFPOINT.new(10, 74, 0)
@@ -130,7 +130,7 @@ local function setupOptions()
     API.DrawTextAt(IG_Text)
     API.DrawBox(btnStart)
     API.DrawBox(btnStop)
-    API.DrawCheckbox(Fight)
+    --API.DrawCheckbox(Fight)
     API.DrawComboBox(ActivityA, false)
 end
 
@@ -272,7 +272,7 @@ while API.Read_LoopyLoop() do
             IG_Text.remove = true
             btnStop.remove = true
             ActivityA.remove = true
-            Fight.remove = true
+            --Fight.remove = true
             
             scriptPaused = false
             
@@ -319,7 +319,8 @@ while API.Read_LoopyLoop() do
         elseif getSpotlight() == "Bodybuilding" then
             ActivitySelected = "Strength"
         elseif getSpotlight() == "Sandcastle Building" then
-            ActivitySelected = "Construction"
+            --ActivitySelected = "Construction"
+            ActivitySelected = "Dung"
         elseif getSpotlight() == "Hook a Duck" then
             ActivitySelected = "Hunter"
         elseif getSpotlight() == "Coconut Shy" then
@@ -327,9 +328,11 @@ while API.Read_LoopyLoop() do
         elseif getSpotlight() == "Barbecues" then
             ActivitySelected = "Coock"
         elseif getSpotlight() == "Palm Tree Farming" then
-            ActivitySelected = "Farming"
+            --ActivitySelected = "Farming"
+            ActivitySelected = "Dung"
         elseif getSpotlight() == "Rock Pools" then
-            ActivitySelected = "Fishing"
+            --ActivitySelected = "Fishing"
+            ActivitySelected = "Dung"
         end
     end
 
