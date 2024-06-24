@@ -68,7 +68,7 @@ local SANDCASTLE_NPCS = {
 
 local ActivityA = API.CreateIG_answer()
 local Activity = {
-    { label = "Spotlight"},
+    --{ label = "Spotlight"},
     { label = "Dungeoneering Hole"},
     { label = "Bodybuilding"},
     --{ label = "Sandcastle building"},
