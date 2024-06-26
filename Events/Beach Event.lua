@@ -296,8 +296,10 @@ local function PalmTree()
             API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.PILEOFCOCONUTS }, 50)
             print("Inventory full, Deposit coconuts.")
         else
-            API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { 117506, 117510 }, 50)
-            print("Back to chopping tree's.")
+            if API.GetAllObjArray1({ 117500, 117502, 117504, 117506, 117508, 117510 },100,{12}) then
+                API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, { 117500, 117502, 117504, 117506, 117508, 117510 }, 50,true)
+                print("Back to chopping tree's.")
+            end
         end
     end
 end
