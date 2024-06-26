@@ -2,7 +2,7 @@
 Beach event 2024 
 script by Valtrex
 
-When using spotlight and its happy hour you can set your preference at line 403
+When using spotlight and its happy hour you can set your preference at line 425
 change: ActivitySelected = "Strength" to your choice
 
 For Dungeoneering Hole:
@@ -19,6 +19,11 @@ for Barbecues:
 ActivitySelected = "Coock"
 For Palm Tree Farming:
 ActivitySelected = "Farming"
+
+
+
+when Clawdia spawns
+<col=FFFF00>A creature appears in the centre of the crater causing a change in the weather. Take it down to bring back summer!
 ]]
 
 
@@ -27,7 +32,7 @@ print("Beach Event!")
 local API = require("api")
 
 local scriptPaused = true
-local GetSpotlight = false
+local Spotlight = false
 local InCombat = false
 
 ActivitySelected = ""
@@ -72,7 +77,7 @@ local OBJECT_IDS = {
 local NPC_IDS = {
     FISHING_SPOT = 21157,
     WELLINGTON = 21150,
-    CLAWDIA = 30265,--21156,
+    CLAWDIA = 21156,
     GRETA = 21333,
     PINATA = 29225
 }
@@ -192,9 +197,10 @@ local function findNPC(npcid, distance)
 end
 
 local function clawdia()
-    if #API.ReadAllObjectsArray({ 1 }, { NPC_IDS.CLAWDIA }, {}) == 0 then return InCombat == true end
+    if #API.ReadAllObjectsArray({ 1 }, { NPC_IDS.CLAWDIA }, {}) == 0 then return  end
     if API.ReadLpInteracting().Id ~= NPC_IDS.CLAWDIA then
         if API.DoAction_NPC(0x2a, API.OFF_ACT_AttackNPC_route, { NPC_IDS.CLAWDIA }, 50) then
+            InCombat = true
             API.RandomSleep2(1200, 0, 200)
             API.WaitUntilMovingEnds()
         end
@@ -258,34 +264,25 @@ local function SandCastle()
 end
 
 local function HookADuck()
-    if API.LocalPlayer_HoverProgress() == 255 or API.LocalPlayer_HoverProgress() == 0 then
-        if not (API.ReadPlayerAnim() == Anim.Duck) and not API.ReadPlayerMovin2() then
-            if API.DoAction_Object1(0x40, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.HOOK_A_DUCK }, 50) then
-                print("Go catch dat ducy!")
-                API.RandomSleep2(1500, 750, 1500)
-            end
+    if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
+        if API.DoAction_Object1(0x40, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.HOOK_A_DUCK }, 50) then
+            print("Go catch dat ducy!")
         end
     end
 end
 
 local function CoconutSky()
-    if API.LocalPlayer_HoverProgress() == 255 or API.LocalPlayer_HoverProgress() == 0 then
-        if not (API.ReadPlayerAnim() == Anim.Duck) and not API.ReadPlayerMovin2() then
-            if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.COCONUT_SKY }, 50) then
-                print("Trow that coconut!")
-                API.RandomSleep2(1500, 750, 1500)
-            end
+    if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
+        if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.COCONUT_SKY }, 50) then
+            print("Trow that coconut!")
         end
     end
 end
 
 local function BBQ()
-    if API.LocalPlayer_HoverProgress() == 255 or API.LocalPlayer_HoverProgress() == 0 then
-        if not (API.ReadPlayerAnim() == Anim.BBQ) and not API.ReadPlayerMovin2() then
-            if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.BARBEQUE_GRILL }, 50) then
-                print("Get That Fish cooked!")
-                API.RandomSleep2(1500, 750, 1500)
-            end
+    if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
+        if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.BARBEQUE_GRILL }, 50) then
+            print("Get That Fish cooked!")
         end
     end
 end
@@ -316,15 +313,18 @@ local function RockPool()
     end
 end
 
-local function IceCream()
-    API.RandomSleep2(1500,1000,2500)
-    if API.InvItemFound1(35049) then
-        API.RandomSleep2(600,100,300)
-        API.DoAction_Inventory1(35049,0,1,API.OFF_ACT_GeneralInterface_route)
-        fail = fail + 1
-        print("It's to hot, time to eat some ice cream.")
-        print("Fail cound: "..fail..".")
+function CheckGameMessageClawdia()
+    local chatTexts = ChatGetMessages()
+    if chatTexts then
+        for k, v in pairs(chatTexts) do
+            if k > 2 then break end
+            if string.find(v.text, "<col=FFFF00>A creature appears in the centre of the crater causing a change in the weather. Take it down to bring back summer!") then
+                InCombat = true
+                return true
+            end
+        end
     end
+    return false
 end
 
 
@@ -339,6 +339,12 @@ local function eatIcecream()
         print('Cant eat more ice creams, exiting')
         API.Write_LoopyLoop(false)
     end
+end
+
+local function isHappyHour()
+    local spot = getSpotlight()
+    if spot == nil or spot == '' then return false end
+    return string.find(spot, 'Happy Hour')
 end
 
 API.SetDrawTrackedSkills(true)
@@ -368,7 +374,7 @@ while API.Read_LoopyLoop() do
 
             if (ActivityA.string_value == "Spotlight") then
                 ActivitySelected = "nil" print("Spotlight selected")
-                GetSpotlight = true
+                Spotlight = true
             elseif (ActivityA.string_value == "Dungeoneering Hole") then
                 ActivitySelected = "Dung" print("Dungeoneering hole selected")
             elseif (ActivityA.string_value == "Bodybuilding") then
@@ -404,9 +410,7 @@ while API.Read_LoopyLoop() do
         return
     end
 
-    --print(""..getSpotlight().. "")
-    --if ActivitySelected == "All" then
-    if GetSpotlight ==  true then
+    if Spotlight ==  true then
         if getSpotlight() == "Dungeoneering Hole" then
             ActivitySelected = "Dung"
         elseif getSpotlight() == "Body Building" then
@@ -440,7 +444,10 @@ while API.Read_LoopyLoop() do
     end
 
     if InCombat == false then
-        if getBeachTemperature() < 294 then
+        if not isHappyHour() then
+            if getBeachTemperature() >= 294 then
+                eatIcecream()
+            end
             fail = 0
             if ActivitySelected == "Dung" then
                 Dung()
@@ -459,9 +466,9 @@ while API.Read_LoopyLoop() do
             elseif ActivitySelected == "Fishing" then
                 RockPool()
             end
-        else
-            eatIcecream()
         end
+    else
+        clawdia()
     end
 
     ::continue::
