@@ -2,7 +2,7 @@
 Beach event 2024 
 script by Valtrex
 
-When using spotlight and its happy hour you can set your preference at line 425
+When using spotlight and its happy hour you can set your preference at line 449
 change: ActivitySelected = "Strength" to your choice
 
 For Dungeoneering Hole:
@@ -16,7 +16,7 @@ ActivitySelected = "Hunter"
 For Coconut shy:
 ActivitySelected = "Ranged"
 for Barbecues:
-ActivitySelected = "Coock"
+ActivitySelected = "Cooking"
 For Palm Tree Farming:
 ActivitySelected = "Farming"
 
@@ -35,7 +35,7 @@ local scriptPaused = true
 local Spotlight = false
 local InCombat = false
 
-ActivitySelected = ""
+local ActivitySelected = "None"--DO NOT CHANGE THIS
 
 local fail = 0
 
@@ -251,14 +251,22 @@ end
 local function SandCastle()
     if  not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
         API.RandomSleep2(650, 500, 900)
-        if API.GetAllObjArray1({SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId},100,{12}) then
-                API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId, 50,true)
-        elseif API.GetAllObjArray1({SANDCASTLE_NPCS.LUMBRIDGE.sandcastleObjectId},100,{12}) then
-                API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.LUMBRIDGE.sandcastleObjectId, 50,true)
-        elseif API.GetAllObjArray1({SANDCASTLE_NPCS.PYRAMID.sandcastleObjectId},100,{12}) then
-                API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.PYRAMID.sandcastleObjectId, 50,true)
-        elseif API.GetAllObjArray1({SANDCASTLE_NPCS.EXCHANGE.sandcastleObjectId},100,{12}) then
-                API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.EXCHANGE.sandcastleObjectId, 50,true)
+        if findNPC(SANDCASTLE_NPCS.WIZARDS.id, 15) then 
+            if API.GetAllObjArray1({SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId},100,{12}) then
+                    API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId, 50,true)
+            end
+        elseif findNPC(SANDCASTLE_NPCS.LUMBRIDGE.id, 15) then
+            if API.GetAllObjArray1({SANDCASTLE_NPCS.LUMBRIDGE.sandcastleObjectId},100,{12}) then
+                    API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.LUMBRIDGE.sandcastleObjectId, 50,true)
+            end
+        elseif findNPC(SANDCASTLE_NPCS.PYRAMID.id, 15) then
+            if API.GetAllObjArray1({SANDCASTLE_NPCS.PYRAMID.sandcastleObjectId},100,{12}) then
+                    API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.PYRAMID.sandcastleObjectId, 50,true)
+            end
+        elseif findNPC(SANDCASTLE_NPCS.EXCHANGE.id, 15) then
+            if API.GetAllObjArray1({SANDCASTLE_NPCS.EXCHANGE.sandcastleObjectId},100,{12}) then
+                    API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.EXCHANGE.sandcastleObjectId, 50,true)
+            end
         end
     end
 end
@@ -266,7 +274,7 @@ end
 local function HookADuck()
     if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
         if API.DoAction_Object1(0x40, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.HOOK_A_DUCK }, 50) then
-            print("Go catch dat ducy!")
+            print("Go catch dat ducky!")
         end
     end
 end
@@ -282,7 +290,7 @@ end
 local function BBQ()
     if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
         if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.BARBEQUE_GRILL }, 50) then
-            print("Get That Fish cooked!")
+            print("Get that fish cooked!")
         end
     end
 end
@@ -320,6 +328,7 @@ function CheckGameMessageClawdia()
             if k > 2 then break end
             if string.find(v.text, "<col=FFFF00>A creature appears in the centre of the crater causing a change in the weather. Take it down to bring back summer!") then
                 InCombat = true
+                print("Found message that Clawdia spawns!")
                 return true
             end
         end
@@ -327,24 +336,33 @@ function CheckGameMessageClawdia()
     return false
 end
 
+function CheckGameMessageClawdia2()
+    local chatTexts = ChatGetMessages()
+    if chatTexts then
+        for k, v in pairs(chatTexts) do
+            if k > 2 then break end
+            if string.find(v.text, "<col=FFFF00>A creature appears in the centre of the crater causing a change in the weather. Take it down to bring back summer!") then
+                InCombat = true
+                print("Test 01.2")
+                return true
+            end
+        end
+    end
+    return false
+end
 
 local function eatIcecream()
     if API.InvItemFound1(ITEM_IDS.ICECREAM) then
         API.DoAction_Inventory1(ITEM_IDS.ICECREAM, 0, 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(1200, 0, 200)
-    end
-    local brainFreezeInterface = { { 1189, 2, -1, -1, 0 }, { 1189, 3, -1, 2, 0 } }
-    local brainFreeze = API.ScanForInterfaceTest2Get(false, brainFreezeInterface)
-    if #brainFreeze > 0 then
-        print('Cant eat more ice creams, exiting')
-        API.Write_LoopyLoop(false)
+        print("It's to hot to work, time for an ice cream.")
     end
 end
 
 local function isHappyHour()
     local spot = getSpotlight()
     if spot == nil or spot == '' then return false end
-    return string.find(spot, 'Happy Hour')
+    return string.find(spot, 'Happy Hour - Everything!')
 end
 
 API.SetDrawTrackedSkills(true)
@@ -386,14 +404,14 @@ while API.Read_LoopyLoop() do
             elseif (ActivityA.string_value == "Coconut shy") then
                 ActivitySelected = "Ranged" print("Coconut shy selected")
             elseif (ActivityA.string_value == "Barbecues") then
-                ActivitySelected = "Coock" print("Barbecues selected")
+                ActivitySelected = "Cooking" print("Barbecues selected")
             elseif (ActivityA.string_value == "Palm Tree Farming") then
                 ActivitySelected = "Farming" print("Palm Tree Farming selected")
             elseif (ActivityA.string_value == "Rock Pools") then
                 ActivitySelected = "Fishing" print("Rock Pools selected")
             end
 
-            if ActivitySelected == "" then
+            if ActivitySelected == "None" then
                 API.Write_LoopyLoop(false)
                 print("Please select a activity from the dropdown menu!")
             end
@@ -409,7 +427,7 @@ while API.Read_LoopyLoop() do
         API.Write_LoopyLoop(false)
         return
     end
-
+    
     if Spotlight ==  true then
         if getSpotlight() == "Dungeoneering Hole" then
             ActivitySelected = "Dung"
@@ -422,25 +440,18 @@ while API.Read_LoopyLoop() do
         elseif getSpotlight() == "Coconut Shy" then
             ActivitySelected = "Ranged"
         elseif getSpotlight() == "Barbecues" then
-            ActivitySelected = "Coock"
+            ActivitySelected = "Cooking"
         elseif getSpotlight() == "Palm Tree Farming" then
             ActivitySelected = "Farming"
         elseif getSpotlight() == "Rock Pools" then
             ActivitySelected = "Fishing"
-        elseif getSpotlight() == "Happy Hour" then
+        elseif getSpotlight() == "Happy Hour - Everything!" then
             ActivitySelected = "Strength"
         end
     end
 
     if FightClawdie then
-        clawdia()
-    end
-
-    if InCombat == true then
-        API.RandomSleep2(1500,2000,1500)
-        if not API.hasTarget() then
-            InCombat = false
-        end
+        CheckGameMessageClawdia()
     end
 
     if InCombat == false then
@@ -459,7 +470,7 @@ while API.Read_LoopyLoop() do
                 HookADuck()
             elseif ActivitySelected == "Ranged" then
                 CoconutSky()
-            elseif ActivitySelected == "Coock" then
+            elseif ActivitySelected == "Cooking" then
                 BBQ()
             elseif ActivitySelected == "Farming" then
                 PalmTree()
@@ -467,8 +478,14 @@ while API.Read_LoopyLoop() do
                 RockPool()
             end
         end
-    else
-        clawdia()
+    elseif InCombat == true then
+        API.DoAction_NPC(0x2a, API.OFF_ACT_AttackNPC_route, { NPC_IDS.CLAWDIA }, 50)
+        print("Attacking Clawdia")
+        API.RandomSleep2(2500,4500,3500)
+        if not API.GetInCombBit() then
+            InCombat = false
+            print("not in combat anymore, time to work.")
+        end
     end
 
     ::continue::
