@@ -2,7 +2,7 @@
 Beach event 2024 
 script by Valtrex
 
-When using spotlight and its happy hour you can set your preference at line 447
+When using spotlight and its happy hour you can set your preference at line 442
 change: ActivitySelected = "Hunter" to your choice
 
 For Dungeoneering Hole:
@@ -19,11 +19,6 @@ for Barbecues:
 ActivitySelected = "Cooking"
 For Palm Tree Farming:
 ActivitySelected = "Farming"
-
-
-
-when Clawdia spawns
-<col=FFFF00>A creature appears in the centre of the crater causing a change in the weather. Take it down to bring back summer!
 ]]
 
 
