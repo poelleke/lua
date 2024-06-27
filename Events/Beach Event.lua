@@ -2,7 +2,7 @@
 Beach event 2024 
 script by Valtrex
 
-When using spotlight and its happy hour you can set your preference at line 449
+When using spotlight and its happy hour you can set your preference at line 425
 change: ActivitySelected = "Strength" to your choice
 
 For Dungeoneering Hole:
@@ -350,13 +350,23 @@ function CheckGameMessageClawdia2()
     end
     return false
 end
+local function brainFreeze()
+    local brainFreezeInterface = { { 1189, 2, -1, -1, 0 }, { 1189, 3, -1, 2, 0 } }
+    local brainFreeze = API.ScanForInterfaceTest2Get(false, brainFreezeInterface)
+    if #brainFreeze > 0 then
+        print('Cant eat more ice creams, exiting')
+        API.Write_LoopyLoop(false)
+    end
+end
 
 local function eatIcecream()
     if API.InvItemFound1(ITEM_IDS.ICECREAM) then
         API.DoAction_Inventory1(ITEM_IDS.ICECREAM, 0, 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(1200, 0, 200)
+        fail = fail +1
         print("It's to hot to work, time for an ice cream.")
     end
+    --brainFreeze()
 end
 
 local function isHappyHour()
@@ -423,11 +433,13 @@ while API.Read_LoopyLoop() do
     API.SetMaxIdleTime(10)
     API.DoRandomEvents()
 
-    if fail > 3 then
+    if fail > 4 then
         API.Write_LoopyLoop(false)
         return
     end
-    
+
+    --print(""..getSpotlight().. "")
+    --if ActivitySelected == "All" then
     if Spotlight ==  true then
         if getSpotlight() == "Dungeoneering Hole" then
             ActivitySelected = "Dung"
@@ -446,7 +458,7 @@ while API.Read_LoopyLoop() do
         elseif getSpotlight() == "Rock Pools" then
             ActivitySelected = "Fishing"
         elseif getSpotlight() == "Happy Hour - Everything!" then
-            ActivitySelected = "Strength"
+            ActivitySelected = "Hunter"
         end
     end
 
