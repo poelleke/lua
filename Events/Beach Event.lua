@@ -2,23 +2,23 @@
 Beach event 2024 
 script by Valtrex
 
-When using spotlight and its happy hour you can set your preference at line 442
-change: ActivitySelected = "Hunter" to your choice
+When using spotlight and its happy hour you can set your preference at line 39
+change: local Spotlight_HappyHour = "Hunter" to your choice
 
 For Dungeoneering Hole:
-ActivitySelected = "Dung" For Dungeoneering Hole
+local Spotlight_HappyHour = "Dung" For Dungeoneering Hole
 For Bodybuilding"
-ActivitySelected = "Strength"
+local Spotlight_HappyHour = "Strength"
 For Sandcastle building:
-ActivitySelected = "Construction"
+local Spotlight_HappyHour = "Construction"
 For Hook-a-duck:
-ActivitySelected = "Hunter"
+local Spotlight_HappyHour = "Hunter"
 For Coconut shy:
-ActivitySelected = "Ranged"
+local Spotlight_HappyHour = "Ranged"
 for Barbecues:
-ActivitySelected = "Cooking"
+local Spotlight_HappyHour = "Cooking"
 For Palm Tree Farming:
-ActivitySelected = "Farming"
+local Spotlight_HappyHour = "Farming"
 ]]
 
 
@@ -31,6 +31,7 @@ local Spotlight = false
 local InCombat = false
 
 local ActivitySelected = "None"--DO NOT CHANGE THIS
+local Spotlight_HappyHour = "Hunter" -- change this for HappyHour spotlight activity
 
 local fail = 0
 
@@ -190,17 +191,6 @@ function BodybuldingInterface()
 local function findNPC(npcid, distance)
     local distance = distance or 10
     return #API.GetAllObjArrayInteract({npcid}, distance, {1}) > 0
-end
-
-local function clawdia()
-    if #API.ReadAllObjectsArray({ 1 }, { NPC_IDS.CLAWDIA }, {}) == 0 then return  end
-    if API.ReadLpInteracting().Id ~= NPC_IDS.CLAWDIA then
-        if API.DoAction_NPC(0x2a, API.OFF_ACT_AttackNPC_route, { NPC_IDS.CLAWDIA }, 50) then
-            InCombat = true
-            API.RandomSleep2(1200, 0, 200)
-            API.WaitUntilMovingEnds()
-        end
-    end
 end
 
 local function Dung()
@@ -419,8 +409,7 @@ while API.Read_LoopyLoop() do
         API.Write_LoopyLoop(false)
         return
     end
-
-    --print(""..getSpotlight().. "")
+    
     if Spotlight ==  true then
         if getSpotlight() == "Dungeoneering Hole" then
             ActivitySelected = "Dung"
@@ -439,7 +428,7 @@ while API.Read_LoopyLoop() do
         elseif getSpotlight() == "Rock Pools" then
             ActivitySelected = "Fishing"
         elseif getSpotlight() == "Happy Hour - Everything!" then
-            ActivitySelected = "Hunter"
+            ActivitySelected = Spotlight_HappyHour
         end
     end
 
