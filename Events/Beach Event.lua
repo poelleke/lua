@@ -322,15 +322,6 @@ function CheckGameMessageClawdia()
     return false
 end
 
-local function brainFreeze()
-    local brainFreezeInterface = { { 1189, 2, -1, -1, 0 }, { 1189, 3, -1, 2, 0 } }
-    local brainFreeze = API.ScanForInterfaceTest2Get(false, brainFreezeInterface)
-    if #brainFreeze > 0 then
-        print('Cant eat more ice creams, exiting')
-        API.Write_LoopyLoop(false)
-    end
-end
-
 local function eatIcecream()
     if API.InvItemFound1(ITEM_IDS.ICECREAM) then
         API.DoAction_Inventory1(ITEM_IDS.ICECREAM, 0, 1, API.OFF_ACT_GeneralInterface_route)
@@ -338,7 +329,10 @@ local function eatIcecream()
         fail = fail +1
         print("It's to hot to work, time for an ice cream.")
     end
-    --brainFreeze()
+    if API.VB_FindPSettinOrder(2874, 1).state == 12 then
+        print('Cant eat more ice creams, exiting')
+        API.Write_LoopyLoop(false)
+    end
 end
 
 local function isHappyHour()
