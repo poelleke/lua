@@ -2,8 +2,8 @@
 Beach event 2024 
 script by Valtrex
 
-When using spotlight and its happy hour you can set your preference at line 425
-change: ActivitySelected = "Strength" to your choice
+When using spotlight and its happy hour you can set your preference at line 447
+change: ActivitySelected = "Hunter" to your choice
 
 For Dungeoneering Hole:
 ActivitySelected = "Dung" For Dungeoneering Hole
@@ -40,6 +40,7 @@ local ActivitySelected = "None"--DO NOT CHANGE THIS
 local fail = 0
 
 local FightClawdie
+local Clawdia = 0
 
 local Anim = {
     Enter_Hole = 27005,
@@ -336,20 +337,6 @@ function CheckGameMessageClawdia()
     return false
 end
 
-function CheckGameMessageClawdia2()
-    local chatTexts = ChatGetMessages()
-    if chatTexts then
-        for k, v in pairs(chatTexts) do
-            if k > 2 then break end
-            if string.find(v.text, "<col=FFFF00>A creature appears in the centre of the crater causing a change in the weather. Take it down to bring back summer!") then
-                InCombat = true
-                print("Test 01.2")
-                return true
-            end
-        end
-    end
-    return false
-end
 local function brainFreeze()
     local brainFreezeInterface = { { 1189, 2, -1, -1, 0 }, { 1189, 3, -1, 2, 0 } }
     local brainFreeze = API.ScanForInterfaceTest2Get(false, brainFreezeInterface)
@@ -430,7 +417,7 @@ while API.Read_LoopyLoop() do
         goto continue
     end
 
-    API.SetMaxIdleTime(10)
+    API.SetMaxIdleTime(5)
     API.DoRandomEvents()
 
     if fail > 4 then
@@ -439,7 +426,6 @@ while API.Read_LoopyLoop() do
     end
 
     --print(""..getSpotlight().. "")
-    --if ActivitySelected == "All" then
     if Spotlight ==  true then
         if getSpotlight() == "Dungeoneering Hole" then
             ActivitySelected = "Dung"
@@ -491,11 +477,15 @@ while API.Read_LoopyLoop() do
             end
         end
     elseif InCombat == true then
-        API.DoAction_NPC(0x2a, API.OFF_ACT_AttackNPC_route, { NPC_IDS.CLAWDIA }, 50)
-        print("Attacking Clawdia")
+        if Clawdia == 0 then
+            API.DoAction_NPC(0x2a, API.OFF_ACT_AttackNPC_route, { NPC_IDS.CLAWDIA }, 50)
+            print("Attacking Clawdia")
+            Clawdia = 1
+        end
         API.RandomSleep2(2500,4500,3500)
         if not API.GetInCombBit() then
             InCombat = false
+            Clawdia = 0
             print("not in combat anymore, time to work.")
         end
     end
