@@ -29,16 +29,17 @@ local UTILS = require("utils")
 
 local scriptPaused = true
 local canDeployShip = true
+local UseIcream = true
 local Spotlight = false
 local InCombat = false
 
 local ActivitySelected = "None"--DO NOT CHANGE THIS
 local Spotlight_HappyHour = "Hunter" -- change this for HappyHour spotlight activity
+local SetRoyalBattleShipMode = "Attack" --Can be set to: Attack or Strength or Defence
 
 local fail = 0
 local Clawdia = 0
 
-local Heatwave
 local FightClawdie
 local UseCocktail
 local UseBattleShip
@@ -128,19 +129,20 @@ local Activity = {
     { label = "Barbeques"},
     { label = "Palm Tree Farming"},
     { label = "Rock Pools"},
+    { label = "Summer Piñata"},
 }
 
 local function setupOptions()
 
     btnStop = API.CreateIG_answer()
-    btnStop.box_start = FFPOINT.new(110, 176, 0)
+    btnStop.box_start = FFPOINT.new(110, 196, 0)
     btnStop.box_name = " STOP "
     btnStop.box_size = FFPOINT.new(90, 50, 0)
     btnStop.colour = ImColor.new(255, 255, 255)
     btnStop.string_value = "STOP"
 
     btnStart = API.CreateIG_answer()
-    btnStart.box_start = FFPOINT.new(10, 176, 0)
+    btnStart.box_start = FFPOINT.new(10, 196, 0)
     btnStart.box_name = " START "
     btnStart.box_size = FFPOINT.new(90, 50, 0)
     btnStart.colour = ImColor.new(0, 0, 255)
@@ -155,37 +157,30 @@ local function setupOptions()
     IG_Back = API.CreateIG_answer()
     IG_Back.box_name = "back"
     IG_Back.box_start = FFPOINT.new(5, 44, 0)
-    IG_Back.box_size = FFPOINT.new(210, 230, 0)
+    IG_Back.box_size = FFPOINT.new(210, 250, 0)
     IG_Back.colour = ImColor.new(15, 13, 18, 255)
     IG_Back.string_value = ""
-
-    Heat = API.CreateIG_answer()
-    Heat.box_ticked = false
-    Heat.box_name = "Heatwave"
-    Heat.box_start = FFPOINT.new(10, 104, 0);
-    Heat.colour = ImColor.new(0, 255, 0);
-    Heat.tooltip_text = "If your temperature bar hits the maximum on the Beach, you can carry on during the heatwave!"
-    
+        
     Fight = API.CreateIG_answer()
     Fight.box_ticked = true
     Fight.box_name = "Fight Clawdie"
     Fight.box_start = FFPOINT.new(10, 124, 0);
     Fight.colour = ImColor.new(0, 255, 0);
-    Fight.tooltip_text = "Fight Clawdie, when it spawns"
+    Fight.tooltip_text = "Fight Clawdie, when it spawns."
 
     Cocktail = API.CreateIG_answer()
     Cocktail.box_ticked = false
-    Cocktail.box_name = "use cocktail"
+    Cocktail.box_name = "Use Cocktail"
     Cocktail.box_start = FFPOINT.new(10, 144, 0);
     Cocktail.colour = ImColor.new(0, 255, 0);
-    Cocktail.tooltip_text = "Driks cocktail when skilling"
+    Cocktail.tooltip_text = "Driks cocktail when skilling."
 
-    --[[Ship = API.CreateIG_answer()
+    Ship = API.CreateIG_answer()
     Ship.box_ticked = false
     Ship.box_name = "Royal battleship"
-    Ship.box_start = FFPOINT.new(10, 144, 0);
+    Ship.box_start = FFPOINT.new(10, 164, 0);
     Ship.colour = ImColor.new(0, 255, 0);
-    Ship.tooltip_text = "PLACEHOLDER"]]
+    Ship.tooltip_text = "make and use the Royal battleship."
 
     ActivityA.box_name = "###ACTIVITIE"
     ActivityA.box_start = FFPOINT.new(10, 74, 0)
@@ -202,16 +197,12 @@ local function setupOptions()
     API.DrawTextAt(IG_Text)
     API.DrawBox(btnStart)
     API.DrawBox(btnStop)
-    API.DrawCheckbox(Heat)
     API.DrawCheckbox(Fight)
     API.DrawCheckbox(Cocktail)
+    API.DrawCheckbox(Ship)
     API.DrawComboBox(ActivityA, false)
 end
 
---[ 
--- 294 == 100% Temp
---  37 == 0%
---]
 local function getBeachTemperature()
     local i = API.ScanForInterfaceTest2Get(false, { { 1642,0,-1,-1,0 }, { 1642,1,-1,0,0 }, { 1642,8,-1,1,0 } })
     if #i > 0 then
@@ -248,9 +239,15 @@ local function eatIcecream()
     end
 end
 
+local function isHeatWave()
+    local now = os.date("!*t")
+    local wday, hour = now.wday, now.hour
+    return (wday == 6 and hour >= 12) or (wday == 7) or (wday == 1) or (wday == 2 and hour < 12)
+end
+
 local function isHappyHour()
     if getSpotlight() == "nil" or getSpotlight() == "" then return false end
-    return getSpotlight() == "Happy Hour - Everything!" or Heatwave
+    return getSpotlight() == "Happy Hour - Everything!"
 end
 
 local function isShipInterfaceOpen()
@@ -286,7 +283,7 @@ local function deployShip()
     if shipStackCount == 0 then
         if API.InvStackSize(ITEM_IDS.INV_SHIP_KIT) > 0 then
             API.DoAction_Inventory1(ITEM_IDS.INV_SHIP_KIT, 0, 1, API.OFF_ACT_GeneralInterface_route)
-            if UTILS.SleepUntil(isKitInterfaceOpen,5,'kits') then
+            if UTILS.SleepUntil(isKitInterfaceOpen,500,'kits') then
                 API.DoAction_Interface(0xffffffff,0xffffffff,0,1370,30,-1,API.OFF_ACT_GeneralInterface_Choose_option)
                 UTILS.countTicks(4)
             end
@@ -295,10 +292,14 @@ local function deployShip()
     end
     if canDeployShip and shipStackCount > 0 then
         API.DoAction_Inventory1(ITEM_IDS.INV_SHIPS, 0, 1, API.OFF_ACT_GeneralInterface_route)
-        UTILS.SleepUntil(isShipInterfaceOpen, 10, 'ship interface')
-            API.DoAction_Interface(0xffffffff, 0xffffffff, 0, 751, 50, -1, API.OFF_ACT_GeneralInterface_Choose_option) -- attack
-            -- API.DoAction_Interface(0xffffffff, 0xffffffff, 0, 751, 58, -1, API.OFF_ACT_GeneralInterface_Choose_option) -- defence
-            -- API.DoAction_Interface(0xffffffff, 0xffffffff, 0, 751, 66, -1, API.OFF_ACT_GeneralIntersface_Choose_option) -- strength
+        UTILS.SleepUntil(isShipInterfaceOpen, 1000, 'ship interface')
+        if SetRoyalBattleShipMode == "Attack" then --Can be set to: Attack or Strength or Defence
+            API.DoAction_Interface(0xffffffff, 0xffffffff, 0, 751, 50, -1, API.OFF_ACT_GeneralInterface_Choose_option)
+        elseif SetRoyalBattleShipMode == "Defence" then
+            API.DoAction_Interface(0xffffffff, 0xffffffff, 0, 751, 58, -1, API.OFF_ACT_GeneralInterface_Choose_option)
+        elseif SetRoyalBattleShipMode == "Strength" then
+            API.DoAction_Interface(0xffffffff, 0xffffffff, 0, 751, 66, -1, API.OFF_ACT_GeneralIntersface_Choose_option)
+        end
         if API.InvStackSize(ITEM_IDS.INV_SHIPS) < shipStackCount then
             canDeployShip = false
         end
@@ -471,7 +472,7 @@ local function SandCastle()
                 PurpleLumbridge()
             end
         end
-        if findNPC(SANDCASTLE_NPCS.WIZARDS.id, 100) then 
+        if findNPC(SANDCASTLE_NPCS.WIZARDS.id, 100) then
             if API.GetAllObjArray1({SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId},100,{12}) then
                     API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId, 50,true)
             end
@@ -568,6 +569,36 @@ local function RockPool()
     end
 end
 
+function CheckGameMessagePinata()
+    local chatTexts = ChatGetMessages()
+    if chatTexts then
+        for k, v in pairs(chatTexts) do
+            if k > 2 then break end
+            if string.find(v.text, "There is already a loot piñata nearby.") then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function SummerPinata()
+    if not API.ReadPlayerMovin2() and (not API.CheckAnim(50)) then
+        if API.InvItemFound1(ITEM_IDS.PINATA) then
+            if API.DoAction_Inventory1(ITEM_IDS.PINATA,0,1,API.OFF_ACT_GeneralInterface_route) then
+                print("Deploy Summer piñata.")
+                API.RandomSleep2(1500, 500, 1000)
+                if findNPC(NPC_IDS.PINATA, 5) then
+                    print("attack Summer piñata.")
+                    API.DoAction_NPC(0x2a,API.OFF_ACT_AttackNPC_route,{ NPC_IDS.PINATA },5)
+                end
+            end
+        else
+            API.Write_LoopyLoop(false)
+        end
+    end
+end
+
 function CheckGameMessageClawdia()
     local chatTexts = ChatGetMessages()
     if chatTexts then
@@ -597,14 +628,13 @@ while API.Read_LoopyLoop() do
             IG_Text.remove = true
             btnStop.remove = true
             ActivityA.remove = true
-            Heat.remove = true
             Fight.remove = true
             Cocktail.remove = true
+            Ship.remove = true
 
-            Heatwave = Heat.box_ticked
             FightClawdie = Fight.box_ticked
             UseCocktail = Cocktail.box_ticked
-            --UseBattleShip = Ship.box_ticked
+            UseBattleShip = Ship.box_ticked
             
             scriptPaused = false
             
@@ -631,6 +661,8 @@ while API.Read_LoopyLoop() do
                 ActivitySelected = "Farming" print("Palm Tree Farming selected")
             elseif (ActivityA.string_value == "Rock Pools") then
                 ActivitySelected = "Fishing" print("Rock Pools selected")
+            elseif (ActivityA.string_value == "Summer Piñata") then
+                ActivitySelected = "Piñata" print("Summer Piñata selected")
             end
 
             if ActivitySelected == "None" then
@@ -653,46 +685,41 @@ while API.Read_LoopyLoop() do
     if Spotlight ==  true then
         if getSpotlight() == "Dungeoneering Hole" then
             ActivitySelected = "Dung"
-            --print("Spotlight: Dungeoneering hole selected")
         elseif getSpotlight() == "Body Building" then
             ActivitySelected = "Strength"
-            --print("Spotlight: Bodybuilding selected")
         elseif getSpotlight() == "Sandcastle Building" then
             ActivitySelected = "Construction"
-            --print("Spotlight: Sandcastle building selected")
         elseif getSpotlight() == "Hook a Duck" then
             ActivitySelected = "Hunter"
-            --print("Spotlight: Hook-a-duck selected")
         elseif getSpotlight() == "Coconut Shy" then
             ActivitySelected = "Ranged"
-            --print("Spotlight: Coconut shy selected")
         elseif getSpotlight() == "Barbeques" then
             ActivitySelected = "Cooking"
-            --print("Spotlight: Barbeques selected")
         elseif getSpotlight() == "Palm Tree Farming" then
             ActivitySelected = "Farming"
-            --print("Spotlight: Palm Tree Farming selected")
         elseif getSpotlight() == "Rock Pools" then
             ActivitySelected = "Fishing"
-            --print("Spotlight: Rock Pools selected")
         elseif getSpotlight() == "Happy Hour - Everything!" then
             ActivitySelected = Spotlight_HappyHour
-            --print("Spotlight: Custom Happy Hour selected")
         end
+    end
+
+    if isHeatWave() or isHappyHour() then
+        UseIcream = false
     end
 
     if FightClawdie then
         CheckGameMessageClawdia()
     end
 
-    if UseBattleShip then
-        if checkIfShipExpired() then
-            deployShip()
-        end
-    end
-
     if InCombat == false then
-        if not isHappyHour() and getBeachTemperature() >= 294 then
+        if UseBattleShip then
+            checkIfShipExpired()
+            if canDeployShip == true then
+                deployShip()
+            end
+        end
+        if UseIcream == true and getBeachTemperature() >= 37 then
             eatIcecream()
         else
             fail = 0
@@ -712,6 +739,8 @@ while API.Read_LoopyLoop() do
                 PalmTree()
             elseif ActivitySelected == "Fishing" then
                 RockPool()
+            elseif ActivitySelected == "Piñata" then
+                SummerPinata()
             end
         end
     elseif InCombat == true then
