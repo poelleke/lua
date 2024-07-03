@@ -282,13 +282,13 @@ local function AHoleinOne()
 end
 
 local function GeorgePeachDelight()
-    local Cocktail = ID_COCKTAIL.Georges_Peach_Deligh
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Georges_Peach_Deligh, false).id > 0)
+    local Cocktail = ID_COCKTAIL.Georges_Peach_Delight
+    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Georges_Peach_Delight, false).id > 0)
     if not cooldown then
         if API.InvItemcount_2(Cocktail) then
             API.logInfo("You drink a George's Peach Delight beach cocktail.")
             API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.Georges_Peach_Deligh, 0, 1, API.OFF_ACT_GeneralInterface_route)
+            return API.DoAction_Inventory2( ID_COCKTAIL.Georges_Peach_Delight, 0, 1, API.OFF_ACT_GeneralInterface_route)
         end
     end
 end
