@@ -339,44 +339,44 @@ local function deployShip()
 end
 
 local function Dung()
-    if UseCocktail then
-        if not isHappyHour() then
-            if API.InvItemcount_2(ID_COCKTAIL.A_Hole_in_One) then
-                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
-                    API.logInfo("You drink a Hole in One beach cocktail.")
-                    API.RandomSleep2(300, 200, 400)
-                    return API.DoAction_Inventory2( ID_COCKTAIL.A_Hole_in_One, 0, 1, API.OFF_ACT_GeneralInterface_route)
+    if not (API.ReadPlayerAnim() == Anim.Enter_Hole) and not (API.ReadPlayerAnim() == Anim.Hole) and not (API.ReadPlayerAnim() == Anim.Exit_Hole) and not API.ReadPlayerMovin2() then
+        if UseCocktail then
+            if not isHappyHour() then
+                if API.InvItemcount_2(ID_COCKTAIL.A_Hole_in_One) then
+                    if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
+                        API.logInfo("You drink a Hole in One beach cocktail.")
+                        API.RandomSleep2(300, 200, 400)
+                        return API.DoAction_Inventory2( ID_COCKTAIL.A_Hole_in_One, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                    end
+                elseif API.InvItemcount_2(ID_COCKTAIL.Lemon_sour) then
+                    if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
+                        API.logInfo("Drink Lemon sour beach cocktail")
+                        API.RandomSleep2(300, 200, 400)
+                        return API.DoAction_Inventory2( ID_COCKTAIL.Lemon_sour, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                    end
                 end
-            elseif API.InvItemcount_2(ID_COCKTAIL.Lemon_sour) then
-                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
-                    API.logInfo("Drink Lemon sour beach cocktail")
-                    API.RandomSleep2(300, 200, 400)
-                    return API.DoAction_Inventory2( ID_COCKTAIL.Lemon_sour, 0, 1, API.OFF_ACT_GeneralInterface_route)
-                end
-            end
-        else
-            if API.InvItemcount_2(ID_COCKTAIL.Lemon_sour) then
-                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
-                    API.logInfo("Drink Lemon sour beach cocktail")
-                    API.RandomSleep2(300, 200, 400)
-                    return API.DoAction_Inventory2( ID_COCKTAIL.Lemon_sour, 0, 1, API.OFF_ACT_GeneralInterface_route)
-                end
-            elseif API.InvItemcount_2(ID_COCKTAIL.A_Hole_in_One) then
-                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
-                    API.logInfo("You drink a Hole in One beach cocktail.")
-                    API.RandomSleep2(300, 200, 400)
-                    return API.DoAction_Inventory2( ID_COCKTAIL.A_Hole_in_One, 0, 1, API.OFF_ACT_GeneralInterface_route)
+            else
+                if API.InvItemcount_2(ID_COCKTAIL.Lemon_sour) then
+                    if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
+                        API.logInfo("Drink Lemon sour beach cocktail")
+                        API.RandomSleep2(300, 200, 400)
+                        return API.DoAction_Inventory2( ID_COCKTAIL.Lemon_sour, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                    end
+                elseif API.InvItemcount_2(ID_COCKTAIL.A_Hole_in_One) then
+                    if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
+                        API.logInfo("You drink a Hole in One beach cocktail.")
+                        API.RandomSleep2(300, 200, 400)
+                        return API.DoAction_Inventory2( ID_COCKTAIL.A_Hole_in_One, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                    end
                 end
             end
         end
-    end
-    if UseBattleShip then
-        deployShip()
-    end
-    API.RandomSleep2(500,250,600)
-    if not API.isProcessing() then
-        if canDeployShip == false then
-            if not (API.ReadPlayerAnim() == Anim.Enter_Hole) and not (API.ReadPlayerAnim() == Anim.Hole) and not (API.ReadPlayerAnim() == Anim.Exit_Hole) and not API.ReadPlayerMovin2() then
+        if UseBattleShip then
+            deployShip()
+        end
+        API.RandomSleep2(500,250,600)
+        if not API.isProcessing() then
+            if canDeployShip == false then
                 if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.DUNGEONEERING_HOLE }, 50) then
                     API.logInfo("Get Back in that Hole!")
                 end
