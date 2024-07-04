@@ -6,7 +6,7 @@ When using spotlight and its happy hour you can set your preference at line 36
 change: local Spotlight_HappyHour = "Hunter" to your choice
 
 For Dungeoneering Hole:
-local Spotlight_HappyHour = "Dung"
+local Spotlight_HappyHour = "Dung" For Dungeoneering Hole
 For Bodybuilding"
 local Spotlight_HappyHour = "Strength"
 For Sandcastle building:
@@ -28,7 +28,7 @@ local API   = require("api")
 local UTILS = require("utils")
 
 local scriptPaused  = true
-local canDeployShip = true
+local canDeployShip = false
 
 local Spotlight = false
 
@@ -82,7 +82,7 @@ local NPC_IDS = {
     WELLINGTON   = 21150,
     CLAWDIA      = 21156,
     GRETA        = 21333,
-    PINATA       = 29225
+    PINATA       = 29225,
 }
 
 local ID_COCKTAIL = {
@@ -227,7 +227,7 @@ local function eatIcecream()
     if not isHeatWave() then
         API.logDebug("Heatwave = false")
         if not isHappyHour() then
-            API.logDebug("Happyhoure = false")
+            API.logDebug("Happyhour = false")
             if getBeachTemperature() >= 294 then
                 if API.InvItemFound1(ITEM_IDS.ICECREAM) then
                     API.DoAction_Inventory1(ITEM_IDS.ICECREAM, 0, 1, API.OFF_ACT_GeneralInterface_route)
@@ -241,114 +241,6 @@ local function eatIcecream()
                     API.Write_LoopyLoop(false)
                 end
             end
-        end
-    end
-end
-
-local function TheUglyDuckling()
-    local Cocktail = ID_COCKTAIL.Ugly_Duckling
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Ugly_Duckling, false).id > 0)
-    if not cooldown then
-        if API.InvItemcount_2(Cocktail) then
-            API.logInfo("You drink a The Ugly Duckling beach cocktail.")
-            API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.Ugly_Duckling, 0, 1, API.OFF_ACT_GeneralInterface_route)
-        end
-    end
-end
-
-local function ThePalmerFarmer()
-    local Cocktail = ID_COCKTAIL.Palmer_Farmer
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Palmer_Farmer, false).id > 0)
-    if not cooldown then
-        if API.InvItemcount_2(Cocktail) then
-            API.logInfo("You drink a The Palmer Farmer beach cocktail.")
-            API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.Palmer_Farmer, 0, 1, API.OFF_ACT_GeneralInterface_route)
-        end
-    end
-end
-
-local function AHoleinOne()
-    local Cocktail = ID_COCKTAIL.A_Hole_in_One
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0)
-    if not cooldown then
-        if API.InvItemcount_2(Cocktail) then
-            API.logInfo("You drink a Hole in One beach cocktail.")
-            API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.A_Hole_in_One, 0, 1, API.OFF_ACT_GeneralInterface_route)
-        end
-    end
-end
-
-local function GeorgePeachDelight()
-    local Cocktail = ID_COCKTAIL.Georges_Peach_Delight
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Georges_Peach_Delight, false).id > 0)
-    if not cooldown then
-        if API.InvItemcount_2(Cocktail) then
-            API.logInfo("You drink a George's Peach Delight beach cocktail.")
-            API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.Georges_Peach_Delight, 0, 1, API.OFF_ACT_GeneralInterface_route)
-        end
-    end
-end
-
-local function FishermanFriend()
-    local Cocktail = ID_COCKTAIL.Fishermans_Friend
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Fishermans_Friend, false).id > 0)
-    if not cooldown then
-        if API.InvItemcount_2(Cocktail) then
-            API.logInfo("You drink a Fisherman's Friend beach cocktail.")
-            API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.Fishermans_Friend, 0, 1, API.OFF_ACT_GeneralInterface_route)
-        end
-    end
-end
-
-local function PurpleLumbridge()
-    local Cocktail = ID_COCKTAIL.Purple_Lumbridge
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Purple_Lumbridge, false).id > 0)
-    if not cooldown then
-        if API.InvItemcount_2(Cocktail) then
-            API.logInfo("You drink a Purple Lumbridge beach cocktail.")
-            API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.Purple_Lumbridge, 0, 1, API.OFF_ACT_GeneralInterface_route)
-        end
-    end
-end
-
-local function PinkFizz()
-    local Cocktail = ID_COCKTAIL.Pink_fizz
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pink_fizz, false).id > 0)
-    if not cooldown then
-        if API.InvItemcount_2(Cocktail) then
-            API.logInfo("You drink a Pink fizz beach cocktail.")
-            API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.Pink_fizz, 0, 1, API.OFF_ACT_GeneralInterface_route)
-        end
-    end
-end
-
-local function LemonSour()
-    local Cocktail = ID_COCKTAIL.Lemon_sour
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0)
-    if not cooldown then
-        if API.InvItemcount_2(Cocktail) then
-            API.logInfo("Drink Lemon sour beach cocktail")
-            API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.Lemon_sour, 0, 1, API.OFF_ACT_GeneralInterface_route)
-        end
-    end
-end
-
-local function Pineappletini()
-    local Cocktail = ID_COCKTAIL.Pineappletini
-    local cooldown = (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pineappletini, false).id > 0)
-    if not cooldown then
-        if API.InvItemcount_2(Cocktail) then
-            API.logInfo("Drink Pineappletini beach cocktail")
-            API.RandomSleep2(300, 200, 400)
-            return API.DoAction_Inventory2( ID_COCKTAIL.Pineappletini, 0, 1, API.OFF_ACT_GeneralInterface_route)
         end
     end
 end
@@ -384,6 +276,14 @@ local function checkIfShipExpired()
     end
 end
 
+local function checkForShip()
+    if API.CheckFamiliar() then
+        canDeployShip = false
+    else
+        canDeployShip = false
+    end
+end
+
 local function isShipInterfaceOpen()
     local shipInterface = { { 751, 37, -1, -1, 0 } }
     return #API.ScanForInterfaceTest2Get(true, shipInterface) > 0
@@ -398,7 +298,7 @@ local function isKitInterfaceOpen()
 end
 
 local function deployShip()
-    if API.isProcessing() or API.CheckAnim(50) then return end
+    if API.isProcessing() or API.CheckAnim(50) and getBeachTemperature() < 294 then return end
     local shipStackCount = API.InvStackSize(ITEM_IDS.INV_SHIPS)
     if shipStackCount == 0 then
         if API.InvStackSize(ITEM_IDS.INV_SHIP_KIT) > 0 then
@@ -439,87 +339,154 @@ local function deployShip()
 end
 
 local function Dung()
-    if not (API.ReadPlayerAnim() == Anim.Enter_Hole) and not (API.ReadPlayerAnim() == Anim.Hole) and not (API.ReadPlayerAnim() == Anim.Exit_Hole) and not API.ReadPlayerMovin2() then
-        if UseCocktail then
-            if not isHappyHour() then
-                AHoleinOne()
-            else
-                LemonSour()
+    if UseCocktail then
+        if not isHappyHour() then
+            if API.InvItemcount_2(ID_COCKTAIL.A_Hole_in_One) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
+                    API.logInfo("You drink a Hole in One beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.A_Hole_in_One, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(ID_COCKTAIL.Lemon_sour) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
+                    API.logInfo("Drink Lemon sour beach cocktail")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Lemon_sour, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            end
+        else
+            if API.InvItemcount_2(ID_COCKTAIL.Lemon_sour) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
+                    API.logInfo("Drink Lemon sour beach cocktail")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Lemon_sour, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(ID_COCKTAIL.A_Hole_in_One) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.A_Hole_in_One, false).id > 0) and not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Lemon_sour, false).id > 0) then
+                    API.logInfo("You drink a Hole in One beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.A_Hole_in_One, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
             end
         end
-        if UseBattleShip then
-            deployShip()
-        end
-        if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.DUNGEONEERING_HOLE }, 50) then
-            API.logInfo("Get Back in that Hole!")
+    end
+    if UseBattleShip then
+        deployShip()
+    end
+    API.RandomSleep2(500,250,600)
+    if not API.isProcessing() then
+        if canDeployShip == false then
+            if not (API.ReadPlayerAnim() == Anim.Enter_Hole) and not (API.ReadPlayerAnim() == Anim.Hole) and not (API.ReadPlayerAnim() == Anim.Exit_Hole) and not API.ReadPlayerMovin2() then
+                if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.DUNGEONEERING_HOLE }, 50) then
+                    API.logInfo("Get Back in that Hole!")
+                end
+            end
         end
     end
 end
 
 local function Bodybulding()
-    if not API.ReadPlayerMovin2() and BodybuldingInterface() then
-        if UseCocktail then
-            PinkFizz()
-        end
-        if UseBattleShip then
-            deployShip()
-        end
-        if API.FindNPCbyName("Ivan", 50).Anim == Anim.Crul then
-            if not (API.ReadPlayerAnim() == Anim.Crul) then
-                    API.logDebug("Found anim: Crul")
-                    API.KeyboardPress2(0x31, 60, 100)
-            end
-        elseif API.FindNPCbyName("Ivan", 50).Anim == Anim.Lunge then
-            if not (API.ReadPlayerAnim() == Anim.Lunge) then
-                    API.logDebug("Found anim: Lunge")
-                    API.KeyboardPress2(0x32, 60, 100)
-            end
-        elseif API.FindNPCbyName("Ivan", 50).Anim == Anim.Fly then
-            if (API.ReadPlayerAnim() == Anim.Fly) then
-                    API.logDebug("Found anim: Fly")
-                    API.KeyboardPress2(0x33, 60, 100)
-            end
-        elseif API.FindNPCbyName("Ivan", 50).Anim == Anim.Raise then
-            if not (API.ReadPlayerAnim() == Anim.Raise) then
-                    API.logDebug("Found anim: Raise")
-                    API.KeyboardPress2(0x34, 60, 100)
+    if UseCocktail then
+        if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pink_fizz, false).id > 0) then
+            if API.InvItemcount_2(ID_COCKTAIL.Pink_fizz) then
+                API.logInfo("You drink a Pink fizz beach cocktail.")
+                API.RandomSleep2(300, 200, 400)
+                return API.DoAction_Inventory2( ID_COCKTAIL.Pink_fizz, 0, 1, API.OFF_ACT_GeneralInterface_route)
             end
         end
-    else
-        API.logDebug("Not on the platform!")
-        if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.BODYBUILDING }, 50) then
-            API.RandomSleep2(1500, 1000, 2000)
+    end
+    if UseBattleShip then
+        deployShip()
+    end
+    if not API.isProcessing() then
+        if not canDeployShip then
+            if not API.ReadPlayerMovin2() and BodybuldingInterface() then
+                if API.FindNPCbyName("Ivan", 50).Anim == Anim.Crul then
+                    if not (API.ReadPlayerAnim() == Anim.Crul) then
+                            API.logDebug("Found anim: Crul")
+                            API.KeyboardPress2(0x31, 60, 100)
+                    end
+                elseif API.FindNPCbyName("Ivan", 50).Anim == Anim.Lunge then
+                    if not (API.ReadPlayerAnim() == Anim.Lunge) then
+                            API.logDebug("Found anim: Lunge")
+                            API.KeyboardPress2(0x32, 60, 100)
+                    end
+                elseif API.FindNPCbyName("Ivan", 50).Anim == Anim.Fly then
+                    if (API.ReadPlayerAnim() == Anim.Fly) then
+                            API.logDebug("Found anim: Fly")
+                            API.KeyboardPress2(0x33, 60, 100)
+                    end
+                elseif API.FindNPCbyName("Ivan", 50).Anim == Anim.Raise then
+                    if not (API.ReadPlayerAnim() == Anim.Raise) then
+                            API.logDebug("Found anim: Raise")
+                            API.KeyboardPress2(0x34, 60, 100)
+                    end
+                end
+            else
+                API.logDebug("Not on the platform!")
+                if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.BODYBUILDING }, 50) then
+                    API.RandomSleep2(1500, 1000, 2000)
+                end
+            end
         end
     end
 end
 
 local function SandCastle()
-    if  not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
-        if UseCocktail then
-            if not isHappyHour() then
-                GeorgePeachDelight()
-            else
-                PurpleLumbridge()
+    if UseCocktail then
+        if not isHappyHour() then
+            if API.InvItemcount_2(ID_COCKTAIL.Georges_Peach_Delight) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Georges_Peach_Delight, false).id > 0) then
+                    API.logInfo("You drink a George's Peach Delight beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Georges_Peach_Delight, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(ID_COCKTAIL.Purple_Lumbridge) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Purple_Lumbridge, false).id > 0) then
+                    API.logInfo("You drink a Purple Lumbridge beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Purple_Lumbridge, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            end
+        else
+            if API.InvItemcount_2(ID_COCKTAIL.Purple_Lumbridge) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Purple_Lumbridge, false).id > 0) then
+                    API.logInfo("You drink a Purple Lumbridge beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Purple_Lumbridge, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(ID_COCKTAIL.Georges_Peach_Delight) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Georges_Peach_Delight, false).id > 0) then
+                    API.logInfo("You drink a George's Peach Delight beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Georges_Peach_Delight, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
             end
         end
-        if UseBattleShip then
-            deployShip()
-        end
-        if findNPC(SANDCASTLE_NPCS.WIZARDS.id, 100) then
-            if API.GetAllObjArray1({SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId},100,{12}) then
-                    API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId, 50,true)
-            end
-        elseif findNPC(SANDCASTLE_NPCS.LUMBRIDGE.id, 100) then
-            if API.GetAllObjArray1({SANDCASTLE_NPCS.LUMBRIDGE.sandcastleObjectId},100,{12}) then
-                    API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.LUMBRIDGE.sandcastleObjectId, 50,true)
-            end
-        elseif findNPC(SANDCASTLE_NPCS.PYRAMID.id, 100) then
-            if API.GetAllObjArray1({SANDCASTLE_NPCS.PYRAMID.sandcastleObjectId},100,{12}) then
-                    API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.PYRAMID.sandcastleObjectId, 50,true)
-            end
-        elseif findNPC(SANDCASTLE_NPCS.EXCHANGE.id, 100) then
-            if API.GetAllObjArray1({SANDCASTLE_NPCS.EXCHANGE.sandcastleObjectId},100,{12}) then
-                    API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.EXCHANGE.sandcastleObjectId, 50,true)
+    end
+    if UseBattleShip then
+        deployShip()
+    end
+    if not API.isProcessing() then
+        if canDeployShip == false then
+            if  not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
+                if findNPC(SANDCASTLE_NPCS.WIZARDS.id, 100) then
+                    if API.GetAllObjArray1({SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId},100,{12}) then
+                            API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.WIZARDS.sandcastleObjectId, 50,true)
+                    end
+                elseif findNPC(SANDCASTLE_NPCS.LUMBRIDGE.id, 100) then
+                    if API.GetAllObjArray1({SANDCASTLE_NPCS.LUMBRIDGE.sandcastleObjectId},100,{12}) then
+                            API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.LUMBRIDGE.sandcastleObjectId, 50,true)
+                    end
+                elseif findNPC(SANDCASTLE_NPCS.PYRAMID.id, 100) then
+                    if API.GetAllObjArray1({SANDCASTLE_NPCS.PYRAMID.sandcastleObjectId},100,{12}) then
+                            API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.PYRAMID.sandcastleObjectId, 50,true)
+                    end
+                elseif findNPC(SANDCASTLE_NPCS.EXCHANGE.id, 100) then
+                    if API.GetAllObjArray1({SANDCASTLE_NPCS.EXCHANGE.sandcastleObjectId},100,{12}) then
+                            API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, SANDCASTLE_NPCS.EXCHANGE.sandcastleObjectId, 50,true)
+                    end
+                end
             end
         end
     end
@@ -528,108 +495,212 @@ end
 local function HookADuck()
     if UseCocktail then
         if not isHappyHour() then
-            TheUglyDuckling()
+            if API.InvItemcount_2(ID_COCKTAIL.Ugly_Duckling) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Ugly_Duckling, false).id > 0) then
+                    API.logInfo("You drink a The Ugly Duckling beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Ugly_Duckling, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(CID_COCKTAIL.Pineappletini) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pineappletini, false).id > 0) then
+                    API.logInfo("Drink Pineappletini beach cocktail")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Pineappletini, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            end
         else
-            Pineappletini()
+            if API.InvItemcount_2(CID_COCKTAIL.Pineappletini) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pineappletini, false).id > 0) then
+                    API.logInfo("Drink Pineappletini beach cocktail")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Pineappletini, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(ID_COCKTAIL.Ugly_Duckling) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Ugly_Duckling, false).id > 0) then
+                    API.logInfo("You drink a The Ugly Duckling beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Ugly_Duckling, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            end
         end
     end
     if UseBattleShip then
         deployShip()
     end
-    if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
-        if API.DoAction_Object1(0x40, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.HOOK_A_DUCK }, 50) then
-            API.logInfo("Go catch dat ducky!")
+    if not API.isProcessing() then
+        if canDeployShip == false then
+            if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
+                if API.DoAction_Object1(0x40, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.HOOK_A_DUCK }, 50) then
+                    API.logInfo("Go catch dat ducky!")
+                end
+            end
         end
     end
 end
 
 local function CoconutSky()
-    if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
-        if UseCocktail then
-            PinkFizz()
+    if UseCocktail then
+        if API.InvItemcount_2(ID_COCKTAIL.Pink_fizz) then
+            if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pink_fizz, false).id > 0) then
+                API.logInfo("You drink a Pink fizz beach cocktail.")
+                API.RandomSleep2(300, 200, 400)
+                return API.DoAction_Inventory2( ID_COCKTAIL.Pink_fizz, 0, 1, API.OFF_ACT_GeneralInterface_route)
+            end
         end
-        if UseBattleShip then
-            deployShip()
-        end
-        if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.COCONUT_SKY }, 50) then
-            API.logInfo("Trow that coconut!")
+    end
+    if UseBattleShip then
+        deployShip()
+    end
+    if not API.isProcessing() then
+        if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
+            if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.COCONUT_SKY }, 50) then
+                API.logInfo("Trow that coconut!")
+            end
         end
     end
 end
 
 local function BBQ()
-    if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
-        if UseCocktail then
-            PurpleLumbridge()
+    if UseCocktail then
+        if API.InvItemcount_2(ID_COCKTAIL.Purple_Lumbridge) then
+            if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Purple_Lumbridge, false).id > 0) then
+                API.logInfo("You drink a Purple Lumbridge beach cocktail.")
+                API.RandomSleep2(300, 200, 400)
+                return API.DoAction_Inventory2( ID_COCKTAIL.Purple_Lumbridge, 0, 1, API.OFF_ACT_GeneralInterface_route)
+            end
         end
-        if UseBattleShip then
-            deployShip()
-        end
-        if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.BARBEQUE_GRILL }, 50) then
-            API.logInfo("Get that fish cooked!")
+    end
+    if UseBattleShip then
+        deployShip()
+    end
+    if not API.isProcessing() then
+        if canDeployShip == false then
+            if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
+                if API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.BARBEQUE_GRILL }, 50) then
+                    API.logInfo("Get that fish cooked!")
+                end
+            end
         end
     end
 end
 
 local function PalmTree()
-    if  not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
-        if UseCocktail then
-            if not isHappyHour() then
-                ThePalmerFarmer()
-            else
-                Pineappletini()
+    if UseCocktail then
+        if not isHappyHour() then
+            if API.InvItemcount_2(ID_COCKTAIL.Palmer_Farmer) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Palmer_Farmer, false).id > 0) then
+                    API.logInfo("You drink a The Palmer Farmer beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Palmer_Farmer, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(CID_COCKTAIL.Pineappletini) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pineappletini, false).id > 0) then
+                    API.logInfo("Drink Pineappletini beach cocktail")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Pineappletini, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            end
+        else
+            if API.InvItemcount_2(CID_COCKTAIL.Pineappletini) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pineappletini, false).id > 0) then
+                    API.logInfo("Drink Pineappletini beach cocktail")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Pineappletini, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(ID_COCKTAIL.Palmer_Farmer) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Palmer_Farmer, false).id > 0) then
+                    API.logInfo("You drink a The Palmer Farmer beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Palmer_Farmer, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
             end
         end
-        if UseBattleShip then
-            deployShip()
-        end
-        if (API.InvFull_()) and API.InvItemFound1(ITEM_IDS.COCONUT) then
-            API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.PILEOFCOCONUTS }, 50)
-            API.logInfo("Inventory full, Deposit coconuts.")
-        else
-            if API.GetAllObjArray1({ 117500, 117502, 117504, 117506, 117508, 117510 },100,{12}) then
-                API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, { 117500, 117502, 117504, 117506, 117508, 117510 }, 50,true)
-                API.logInfo("Back to chopping tree's.")
+    end
+    if UseBattleShip then
+        deployShip()
+    end
+    if not API.isProcessing() then
+        if canDeployShip == false then
+            if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
+                if (API.InvFull_()) and API.InvItemFound1(ITEM_IDS.COCONUT) then
+                    API.DoAction_Object1(0x29, API.OFF_ACT_GeneralObject_route0, { OBJECT_IDS.PILEOFCOCONUTS }, 50)
+                    API.logInfo("Inventory full, Deposit coconuts.")
+                else
+                    if API.GetAllObjArray1({ 117500, 117502, 117504, 117506, 117508, 117510 },100,{12}) then
+                        API.DoAction_Object_valid1(0x29, API.OFF_ACT_GeneralObject_route0, { 117500, 117502, 117504, 117506, 117508, 117510 }, 50,true)
+                        API.logInfo("Back to chopping tree's.")
+                    end
+                end
             end
         end
     end
 end
 
 local function RockPool()
-    if  not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
-        if UseCocktail then
-            if not isHappyHour() then
-                FishermanFriend()
-            else
-                Pineappletini()
+    if UseCocktail then
+        if not isHappyHour() then
+            if API.InvItemcount_2(ID_COCKTAIL.Fishermans_Friend) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Fishermans_Friend, false).id > 0) then
+                    API.logInfo("You drink a Fisherman's Friend beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Fishermans_Friend, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(CID_COCKTAIL.Pineappletini) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pineappletini, false).id > 0) then
+                    API.logInfo("Drink Pineappletini beach cocktail")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Pineappletini, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            end
+        else
+            if API.InvItemcount_2(CID_COCKTAIL.Pineappletini) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Pineappletini, false).id > 0) then
+                    API.logInfo("Drink Pineappletini beach cocktail")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Pineappletini, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
+            elseif API.InvItemcount_2(ID_COCKTAIL.Fishermans_Friend) then
+                if not (API.Buffbar_GetIDstatus(ID_COCKTAIL.Fishermans_Friend, false).id > 0) then
+                    API.logInfo("You drink a Fisherman's Friend beach cocktail.")
+                    API.RandomSleep2(300, 200, 400)
+                    return API.DoAction_Inventory2( ID_COCKTAIL.Fishermans_Friend, 0, 1, API.OFF_ACT_GeneralInterface_route)
+                end
             end
         end
-        if UseBattleShip then
-            deployShip()
-        end
-        if (API.InvFull_()) and API.InvItemFound1(ITEM_IDS.TROPICAL_TROUT) then
-            API.DoAction_NPC(0x29,API.OFF_ACT_InteractNPC_route,{  NPC_IDS.WELLINGTON },50)
-            API.logInfo("Inventory full, Deposit fish.")
-        else
-            API.DoAction_NPC(0x29,API.OFF_ACT_InteractNPC_route,{  NPC_IDS.FISHING_SPOT },50)
-            API.logInfo("Back to Fishing.")
+    end
+    if UseBattleShip then
+        deployShip()
+    end
+    if not API.isProcessing() then
+        if canDeployShip == false then
+            if not API.ReadPlayerMovin2() and (not API.CheckAnim(100)) then
+                if (API.InvFull_()) and API.InvItemFound1(ITEM_IDS.TROPICAL_TROUT) then
+                    API.DoAction_NPC(0x29,API.OFF_ACT_InteractNPC_route,{  NPC_IDS.WELLINGTON },50)
+                    API.logInfo("Inventory full, Deposit fish.")
+                else
+                    API.DoAction_NPC(0x29,API.OFF_ACT_InteractNPC_route,{  NPC_IDS.FISHING_SPOT },50)
+                    API.logInfo("Back to Fishing.")
+                end
+            end
         end
     end
 end
 
 local function SummerPinata()
     if not API.ReadPlayerMovin2() and (not API.CheckAnim(50)) then
-        if API.InvItemFound1(ITEM_IDS.PINATA) then
-            if API.DoAction_Inventory1(ITEM_IDS.PINATA,0,1,API.OFF_ACT_GeneralInterface_route) then
-                API.logInfo("Deploy Summer piñata.")
-                API.RandomSleep2(1500, 500, 1000)
-                if findNPC(NPC_IDS.PINATA, 5) then
-                    API.logInfo("attack Summer piñata.")
-                    API.DoAction_NPC(0x2a,API.OFF_ACT_AttackNPC_route,{ NPC_IDS.PINATA },5)
+        if findNPC(NPC_IDS.PINATA, 5) then
+            API.logInfo("attack Summer piñata.")
+            API.DoAction_NPC(0x2a,API.OFF_ACT_AttackNPC_route,{ NPC_IDS.PINATA },5)
+        elseif not findNPC(NPC_IDS.PINATA, 5) then
+            API.RandomSleep2(1500, 500, 1000)
+            if API.InvItemFound1(ITEM_IDS.PINATA) then
+                if API.DoAction_Inventory1(ITEM_IDS.PINATA,0,1,API.OFF_ACT_GeneralInterface_route) then
+                    API.logInfo("Deploy Summer piñata.")
+                    API.RandomSleep2(1500, 500, 1000)
                 end
+            else
+                API.Write_LoopyLoop(false)
             end
-        else
-            API.Write_LoopyLoop(false)
         end
     end
 end
@@ -711,6 +782,7 @@ while API.Read_LoopyLoop() do
 
     if UseBattleShip then
         checkIfShipExpired()
+        checkForShip()
     end
 
     eatIcecream()
