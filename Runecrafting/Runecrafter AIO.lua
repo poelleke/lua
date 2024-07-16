@@ -7,7 +7,7 @@
 
     All you have to do is set up your preset. The scripts use the load last preset
     For the abyss it uses the Wildy Sword or Edgevilage Teleport back for banking. 
-    For necrotic runes it uses the City of um loadstone or Tome of um (2) to go the smity area. it also uses the brachlet to teleport to Haunt on the Hill.
+    For necrotic runes it uses the City of um loadstone or Underworld Grimoire (2) to go the smity area. it also uses the brachlet to teleport to Haunt on the Hill.
     In addition, it has support for all summoning familiars that are used in runecrafting and renews them when time is almost up.
 
     Release Notes:
@@ -37,7 +37,7 @@
     When doing abyss runes:
     - wildy sword on abilitybar or edgevillage lodestone on abilitybar for teleporting.
     When doing necrotic runes:
-    - Tome of um (2) on abilitybar or City of Um lodestone on abilitybar for teleporting.
+    - Underworld Grimoire (2) on abilitybar or City of Um lodestone on abilitybar for teleporting.
     - Passing bracelet on abilitybar, when using the Haunt on the Hill teleport
 
 ]]
@@ -448,10 +448,10 @@ local function TeleportWarRetreat()
 end
 
 local function teleportToUM()
-    local um = API.GetABs_name1("Tome of Um") or API.GetABs_name1("Tome of Um 2")
+    local um = API.GetABs_name1("Underworld Grimoire") or API.GetABs_name1("Underworld Grimoire 2") or API.GetABs_name1("Underworld Grimoire 3") or API.GetABs_name1("Underworld Grimoire 4")
     if um.enabled and um.action == "Um Smithy" then
-        API.logDebug("Info: Use Tome of Um teleport")
-        API.logInfo("Use Tome of Um teleport.")
+        API.logDebug("Info: Use Underworld Grimoire teleport")
+        API.logInfo("Use Underworld Grimoire teleport.")
         API.DoAction_Ability_Direct(um, 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(2000,1000,2000)
         API.WaitUntilMovingEnds()
