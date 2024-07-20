@@ -448,7 +448,7 @@ local function TeleportWarRetreat()
 end
 
 local function teleportToUM()
-    local um = API.GetABs_name1("Tome of Um") or API.GetABs_name1("Tome of Um 2")
+    local um = API.GetABs_name1("Underworld Grimoire") or API.GetABs_name1("Underworld Grimoire 2")or API.GetABs_name1("Underworld Grimoire 3")or API.GetABs_name1("Underworld Grimoire 4")
     if um.enabled and um.action == "Um Smithy" then
         API.logDebug("Info: Use Tome of Um teleport")
         API.logInfo("Use Tome of Um teleport.")
