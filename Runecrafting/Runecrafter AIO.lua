@@ -951,13 +951,13 @@ end
 
 local function surge()
     if (aioSelectR.string_value == "(Necro) Spirit rune") then
-        API.DoAction_Surge_Tile(WPOINT.new(1313,1969,0), 5)
+        API.DoAction_Dive_Tile(WPOINT.new(1313,1969,0))
     elseif(aioSelectR.string_value == "(Necro) Bone rune") then
-        API.DoAction_Surge_Tile( WPOINT.new(1296,1962,0), 5)
+        API.DoAction_Dive_Tile( WPOINT.new(1296,1962,0))
     elseif (aioSelectR.string_value == "(Necro) Flesh rune") then
-        API.DoAction_Surge_Tile(WPOINT.new(1315,1934,0), 5)
+        API.DoAction_Dive_Tile(WPOINT.new(1315,1934,0))
     elseif (aioSelectR.string_value == "(Necro) Miasma rune") then
-        API.DoAction_Surge_Tile(WPOINT.new(1325,1950,0), 5)
+        API.DoAction_Dive_Tile(WPOINT.new(1325,1950,0))
     end
 end
 
