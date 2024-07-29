@@ -814,18 +814,18 @@ local function WalkToMage()
 end
 
 local function SurgeToMage()
-    local Mage = API.GetAllObjArray1({ID_NPC.MAGE}, 50, {1})
-    local MageCoord = WPOINT.new(Mage.TileX/512,Mage.TileY/512,0)
-    if not (API.ReadPlayerAnim() == ID_Anim.WildyWall) and not API.ReadPlayerMovin2() then
-        API.RandomSleep2(680, 500, 1000)
+    if not (API.ReadPlayerAnim() == ID_Anim.WildyWall) and not API.ReadPlayerMovin2() and (not API.CheckAnim(25)) then
         API.DoAction_Ability("Surge", 1, API.OFF_ACT_GeneralInterface_route)
         API.logDebug("Doaction: Surge ")
         UTILS.countTicks(2)
         API.DoAction_Surge_Tile(WPOINT.new(3107 + math.random(-4, 4), 3559 + math.random(-4, 4), 0))
         API.RandomSleep2(680, 500, 1000)
+        local Mage = API.GetAllObjArray1({ID_NPC.MAGE}, 100, {1})
+        local MageCoord = WPOINT.new(Mage[1].TileX/512,Mage[1].TileY/512,0)
         if API.Math_DistanceW(MageCoord,API.PlayerCoord()) > 15 then
-            API.DoAction_Dive_Tile(WPOINT.new(Mage.TileX/512,Mage.TileY/512,0))
+            API.DoAction_Dive_Tile(MageCoord)
             API.logDebug("Doaction: Dive to mage")
+            API.logInfo("Mage was found")
         end
         API.RandomSleep2(680, 500, 1000)
         API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route, { ID_NPC.MAGE }, 50)
@@ -1011,7 +1011,7 @@ local function CheckforImpureEssence()
 end
 
 local function InventoryCheck()
-    if not (API.ReadPlayerAnim() == ID_Anim.Teleport_DOWN) and not API.ReadPlayerMovin2() then
+    if not (API.ReadPlayerAnim() == ID_Anim.Teleport_DOWN) and not API.ReadPlayerMovin2() and (not API.CheckAnim(50)) then
         if fail > 5 then
             API.logError("couldn't bank properly.")
             API.Write_LoopyLoop(false)
@@ -1023,9 +1023,11 @@ local function InventoryCheck()
                 if not API.ReadPlayerMovin2() then
                     if SurgeDiveAbillity  then
                         API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 65084, 65082 }, 65)
+                        API.logDebug("Doaction: Wildy wall (Surge)")
+                    else
+                        API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
+                        API.logDebug("Doaction: Wildy wall")
                     end
-                    API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
-                    API.logDebug("Doaction: Wildy wall")
                     if needDemonicSkull and isBankpinInterfacePresent() then
                         API.RandomSleep2(5000, 500, 1000)
                     end
@@ -1300,6 +1302,7 @@ while API.Read_LoopyLoop() do
                 elseif API.PInArea(3107, 10, 3559, 10) then
                     API.logDebug("Location found: Near Mage.")
                     DoMage()
+                    API.RandomSleep2(250, 500, 750)
                 elseif not API.ReadPlayerMovin() and p.y < 3521 then
                     API.logDebug("Location found: Wildy but on the wrong side of the wall.")
                     API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
