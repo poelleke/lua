@@ -415,24 +415,15 @@ end
 
 local function teleportToHauntHill()
     local hh = API.GetABs_name1("Passing bracelet")
-    if #hh.name > 0 then
-        local opts = API.ScanForInterfaceTest2Get(true, { { 720,2,-1,-1,0 }, { 720,16,-1,2,0 }, { 720,9,-1,16,0 } })
-        if isTeleportOptionsUp() then
-                API.KeyboardPress2(0x32, 60, 100)
-                API.RandomSleep2(1000, 1000, 1000)
-                API.logDebug("Info: Use Haunt on the Hill teleport")
-                API.logInfo("Use Haunt on the Hill teleport.")
-       else
-            if hh.enabled then
-                API.DoAction_Ability_Direct(hh, 7, API.OFF_ACT_GeneralInterface_route)
-                API.RandomSleep2(1000, 1000, 1000)
-                API.logDebug("pressing 2 key button.")
-                API.KeyboardPress2(0x32, 60, 100)
-                API.RandomSleep2(1000, 1000, 1000)
-            end
-        end
+    if hh.enabled then
+        API.logDebug("Info: Use Haunt on the Hill teleport")
+        API.logInfo("Use Haunt on the Hill teleport.")
+        API.DoAction_Ability_Direct(hh, 7, API.OFF_ACT_GeneralInterface_route)
+        API.RandomSleep2(1000, 1000, 1000)
+        API.logDebug("pressing 2 key button.")
+        API.KeyboardPress2(0x32, 60, 100)
+        API.RandomSleep2(1000, 1000, 1000)
     end
-    return false
 end
 
 local function TeleportWarRetreat()
@@ -448,10 +439,10 @@ local function TeleportWarRetreat()
 end
 
 local function teleportToUM()
-    local um = API.GetABs_name1("Underworld Grimoire") or API.GetABs_name1("Underworld Grimoire 2")or API.GetABs_name1("Underworld Grimoire 3")or API.GetABs_name1("Underworld Grimoire 4")
-    if um.enabled and um.action == "Um Smithy" then
-        API.logDebug("Info: Use Tome of Um teleport")
-        API.logInfo("Use Tome of Um teleport.")
+    local um = API.GetABs_name1("Underworld Grimoire") or API.GetABs_name1("Underworld Grimoire 2") or API.GetABs_name1("Underworld Grimoire 3") or API.GetABs_name1("Underworld Grimoire 4")
+    if um.enabled then
+        API.logDebug("Info: Use Underworld Grimoire")
+        API.logInfo("Use Underworld Grimoire.")
         API.DoAction_Ability_Direct(um, 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(2000,1000,2000)
         API.WaitUntilMovingEnds()
