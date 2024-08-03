@@ -404,7 +404,7 @@ end
 
 local function teleportToEdgeville()
     local ws = API.GetABs_name1("Wilderness sword")
-    if ws.enabled and ws.action == "Edgeville" then
+    if ws.enabled then
         API.logDebug("Info: Use wilderness sword teleport")
         API.logInfo("Use wilderness sword teleport.")
         API.DoAction_Ability_Direct(ws, 1, API.OFF_ACT_GeneralInterface_route)
