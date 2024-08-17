@@ -1,6 +1,6 @@
 --[[
     Author:      Valtrex
-    Version:     2.1
+    Version:     2.2
     Release      Date: 02-04-2024
     Script:      Runecrafter
     Description: crafting runes via the abyss and necrotic runes in the City of Um. 
@@ -24,10 +24,11 @@
                       - Repositioned the procesbar.
                       - Start UI removed, because we now have load last script.
     - Version 1.60  : Add necrotic runes
-    - Version 2.0   : Redone script. reduce the waitings
+    - Version 2     : Redone script. reduce the waitings
     - Version 2.1   : - Add dead's Metrics instead of procesbar.
                       - Fixed and issu for the level checks inercircle abbys (it should not look at it when using the Nexus Mod rellic or when running necrotic runes.) 
                       - Add the right teleport option for the Passing bracelet when wearing it.
+    - Version 2.2   : - Bug Fixes.
 
 
     You will need:
@@ -51,7 +52,7 @@ local Bankpin           = xxxx-- Your Bankpin
 
 local skill             = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version           = "2.1"
+local version           = "2.2"
 local Rune_type         = ""
 local Rune              = ""
 local Familier          = "None"
@@ -448,7 +449,7 @@ local function TeleportWarRetreat()
 end
 
 local function teleportToUM()
-    local um = API.GetABs_name1("Underworld Grimoire") or API.GetABs_name1("Underworld Grimoire 2")or API.GetABs_name1("Underworld Grimoire 3")or API.GetABs_name1("Underworld Grimoire 4")
+    local um = API.GetABs_name1("Tome of Um") or API.GetABs_name1("Tome of Um 2")
     if um.enabled and um.action == "Um Smithy" then
         API.logDebug("Info: Use Tome of Um teleport")
         API.logInfo("Use Tome of Um teleport.")
@@ -815,18 +816,18 @@ local function WalkToMage()
 end
 
 local function SurgeToMage()
-    local Mage = API.GetAllObjArray1({ID_NPC.MAGE}, 50, {1})
-    local MageCoord = WPOINT.new(Mage.TileX/512,Mage.TileY/512,0)
-    if not (API.ReadPlayerAnim() == ID_Anim.WildyWall) and not API.ReadPlayerMovin2() then
-        API.RandomSleep2(680, 500, 1000)
+    if not (API.ReadPlayerAnim() == ID_Anim.WildyWall) and not API.ReadPlayerMovin2() and (not API.CheckAnim(25)) then
         API.DoAction_Ability("Surge", 1, API.OFF_ACT_GeneralInterface_route)
         API.logDebug("Doaction: Surge ")
         UTILS.countTicks(2)
         API.DoAction_Surge_Tile(WPOINT.new(3107 + math.random(-4, 4), 3559 + math.random(-4, 4), 0))
         API.RandomSleep2(680, 500, 1000)
+        local Mage = API.GetAllObjArray1({ID_NPC.MAGE}, 100, {1})
+        local MageCoord = WPOINT.new(Mage[1].TileX/512,Mage[1].TileY/512,0)
         if API.Math_DistanceW(MageCoord,API.PlayerCoord()) > 15 then
-            API.DoAction_Dive_Tile(WPOINT.new(Mage.TileX/512,Mage.TileY/512,0))
+            API.DoAction_Dive_Tile(MageCoord)
             API.logDebug("Doaction: Dive to mage")
+            API.logInfo("Mage was found")
         end
         API.RandomSleep2(680, 500, 1000)
         API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route, { ID_NPC.MAGE }, 50)
@@ -930,12 +931,12 @@ local function Lodestone()
     end
 end
 
-local function Haunthill()
+local function Haunthill()--IsPlayerInDirection then surse to portal
     if not API.ReadPlayerMovin2() then
         if SurgeDiveAbillity then
             API.DoAction_Object1(0x39, API.OFF_ACT_GeneralObject_route0, {ID_Object.DARK_PORTAL}, 50)
-            API.RandomSleep2(500, 150, 150)
-            API.DoAction_Ability("Surge", 1, API.OFF_ACT_GeneralInterface_route)
+            API.RandomSleep2(1000, 750, 950)
+            API.DoAction_Ability("Surge", 1, API.OFF_ACT_GeneralInterface_route)--TODO Add a oriantation check
             API.RandomSleep2(500, 150, 150)
             API.DoAction_Object1(0x39, API.OFF_ACT_GeneralObject_route0, {ID_Object.DARK_PORTAL}, 50)
         else
@@ -952,13 +953,13 @@ end
 
 local function surge()
     if (aioSelectR.string_value == "(Necro) Spirit rune") then
-        API.DoAction_Surge_Tile(WPOINT.new(1313,1969,0), 5)
+        API.DoAction_Dive_Tile(WPOINT.new(1313,1969,0))
     elseif(aioSelectR.string_value == "(Necro) Bone rune") then
-        API.DoAction_Surge_Tile( WPOINT.new(1296,1962,0), 5)
+        API.DoAction_Dive_Tile( WPOINT.new(1296,1962,0))
     elseif (aioSelectR.string_value == "(Necro) Flesh rune") then
-        API.DoAction_Surge_Tile(WPOINT.new(1315,1934,0), 5)
+        API.DoAction_Dive_Tile(WPOINT.new(1315,1934,0))
     elseif (aioSelectR.string_value == "(Necro) Miasma rune") then
-        API.DoAction_Surge_Tile(WPOINT.new(1325,1950,0), 5)
+        API.DoAction_Dive_Tile(WPOINT.new(1325,1950,0))
     end
 end
 
@@ -1012,7 +1013,7 @@ local function CheckforImpureEssence()
 end
 
 local function InventoryCheck()
-    if not (API.ReadPlayerAnim() == ID_Anim.Teleport_DOWN) and not API.ReadPlayerMovin2() then
+    if not (API.ReadPlayerAnim() == ID_Anim.Teleport_DOWN) and not API.ReadPlayerMovin2() and (not API.CheckAnim(50)) then
         if fail > 5 then
             API.logError("couldn't bank properly.")
             API.Write_LoopyLoop(false)
@@ -1081,15 +1082,13 @@ local function InventoryCheck()
                 API.logDebug("Banking state:" .. banking .. "")
                 API.logDebug("Fail cound: " .. fail .. "")
             end
-            if not API.ReadPlayerMovin2() then
-                if API.Invfreecount_() > 5 then
-                    API.logError("Didn't get a full inventory!")
-                    fail = fail + 1
-                    banking = 1
-                    API.logDebug("Banking state:" .. banking .. "")
-                    API.logDebug("Fail cound: " .. fail .. "")
-                    return
-                end
+            if API.Invfreecount_() > 5 then
+                API.logError("Didn't get a full inventory!")
+                fail = fail + 1
+                banking = 1
+                API.logDebug("Banking state:" .. banking .. "")
+                API.logDebug("Fail cound: " .. fail .. "")
+                return
             end
         end
     end
