@@ -1064,7 +1064,9 @@ local function InventoryCheck()
             else
                 if invContains(ID_Items.PASSING_BRACLET) then
                     API.logDebug("Item found: Passing Braclet in inventory.")
-                    teleportToHauntHill()
+                    if (not API.CheckAnim(30)) then
+                        teleportToHauntHill()
+                    end
                 elseif API.EquipSlotEq1(7, 56416) then
                     API.logDebug("Item found: Passing Braclet in glove slot.")
                     API.DoAction_Ability_Direct(API.GetABs_name1("Passing bracelet"), 2, API.OFF_ACT_GeneralInterface_route)
