@@ -1,6 +1,6 @@
 --[[
     Author:      Valtrex
-    Version:     2
+    Version:     2.1
     Release      Date: 02-04-2024
     Script:      Runecrafter
     Description: crafting runes via the abyss and necrotic runes in the City of Um. 
@@ -24,7 +24,7 @@
                       - Repositioned the procesbar.
                       - Start UI removed, because we now have load last script.
     - Version 1.60  : Add necrotic runes
-    - Version 2     : Redone script. reduce the waitings
+    - Version 2.0   : Redone script. reduce the waitings
     - Version 2.1   : - Add dead's Metrics instead of procesbar.
                       - Fixed and issu for the level checks inercircle abbys (it should not look at it when using the Nexus Mod rellic or when running necrotic runes.) 
                       - Add the right teleport option for the Passing bracelet when wearing it.
@@ -404,7 +404,7 @@ end
 
 local function teleportToEdgeville()
     local ws = API.GetABs_name1("Wilderness sword")
-    if ws.enabled then
+    if ws.enabled and ws.action == "Edgeville" then
         API.logDebug("Info: Use wilderness sword teleport")
         API.logInfo("Use wilderness sword teleport.")
         API.DoAction_Ability_Direct(ws, 1, API.OFF_ACT_GeneralInterface_route)
@@ -415,15 +415,24 @@ end
 
 local function teleportToHauntHill()
     local hh = API.GetABs_name1("Passing bracelet")
-    if hh.enabled then
-        API.logDebug("Info: Use Haunt on the Hill teleport")
-        API.logInfo("Use Haunt on the Hill teleport.")
-        API.DoAction_Ability_Direct(hh, 7, API.OFF_ACT_GeneralInterface_route)
-        API.RandomSleep2(1000, 1000, 1000)
-        API.logDebug("pressing 2 key button.")
-        API.KeyboardPress2(0x32, 60, 100)
-        API.RandomSleep2(1000, 1000, 1000)
+    if #hh.name > 0 then
+        local opts = API.ScanForInterfaceTest2Get(true, { { 720,2,-1,-1,0 }, { 720,16,-1,2,0 }, { 720,9,-1,16,0 } })
+        if isTeleportOptionsUp() then
+                API.KeyboardPress2(0x32, 60, 100)
+                API.RandomSleep2(1000, 1000, 1000)
+                API.logDebug("Info: Use Haunt on the Hill teleport")
+                API.logInfo("Use Haunt on the Hill teleport.")
+       else
+            if hh.enabled then
+                API.DoAction_Ability_Direct(hh, 7, API.OFF_ACT_GeneralInterface_route)
+                API.RandomSleep2(1000, 1000, 1000)
+                API.logDebug("pressing 2 key button.")
+                API.KeyboardPress2(0x32, 60, 100)
+                API.RandomSleep2(1000, 1000, 1000)
+            end
+        end
     end
+    return false
 end
 
 local function TeleportWarRetreat()
@@ -439,10 +448,10 @@ local function TeleportWarRetreat()
 end
 
 local function teleportToUM()
-    local um = API.GetABs_name1("Underworld Grimoire") or API.GetABs_name1("Underworld Grimoire 2") or API.GetABs_name1("Underworld Grimoire 3") or API.GetABs_name1("Underworld Grimoire 4")
-    if um.enabled then
-        API.logDebug("Info: Use Underworld Grimoire")
-        API.logInfo("Use Underworld Grimoire.")
+    local um = API.GetABs_name1("Underworld Grimoire") or API.GetABs_name1("Underworld Grimoire 2")or API.GetABs_name1("Underworld Grimoire 3")or API.GetABs_name1("Underworld Grimoire 4")
+    if um.enabled and um.action == "Um Smithy" then
+        API.logDebug("Info: Use Tome of Um teleport")
+        API.logInfo("Use Tome of Um teleport.")
         API.DoAction_Ability_Direct(um, 1, API.OFF_ACT_GeneralInterface_route)
         API.RandomSleep2(2000,1000,2000)
         API.WaitUntilMovingEnds()
@@ -564,7 +573,7 @@ local function checkForswordMessage()
 end
 
 local function RenewFamiliar()
-    if fail > 3 then
+    if fail > 5 then
         API.logError("couldn't renew familiar.")
         API.Write_LoopyLoop(false)
         return
@@ -575,19 +584,20 @@ local function RenewFamiliar()
             API.logInfo("Renewing summoning points.")
             renewSummoningPoints()
         else
-            API.RandomSleep2(600,100,300)
-            API.logDebug("Doaction: Open bank.")
-            API.DoAction_Object1(0x2e, API.OFF_ACT_GeneralObject_route1, {ID_Bank.WAR_BANK}, 50)
-            API.RandomSleep2(1000, 500, 1000)
-            if API.Invfreecount_() < 2 then
-                API.logDebug("Info: Summoning: make more room in your invt.")
-                API.KeyboardPress2(0x33,0,50)
-                API.RandomSleep2(1000, 500, 1000)
-            else
-                API.DoAction_Bank(selectedFamiliar, 1, API.OFF_ACT_GeneralInterface_route)
-                API.RandomSleep2(1000, 500, 1000)        
-                API.KeyboardPress2(0x1B, 50, 150)
-                API.RandomSleep2(1000, 500, 1000)
+            if API.CheckBankVarp() == false then
+                API.logDebug("Bank not open, Opening bank!")
+                API.DoAction_Object1(0x2e, API.OFF_ACT_GeneralObject_route1, {ID_Bank.WAR_BANK}, 50)
+            end
+            if API.CheckBankVarp() == true then
+                API.logDebug("Bank is open!")
+                if API.Invfreecount_() < 2 then
+                    API.logDebug("Summoning: make more room in your invt.")
+                    API.KeyboardPress2(0x33,0,50)
+                else
+                    API.DoAction_Bank(selectedFamiliar, 1, API.OFF_ACT_GeneralInterface_route)
+                    API.RandomSleep2(1000, 500, 1000)
+                    API.KeyboardPress2(0x1B, 50, 150)
+                end
             end
         end
         if API.InvStackSize(selectedFamiliar) < 1 then
@@ -805,18 +815,18 @@ local function WalkToMage()
 end
 
 local function SurgeToMage()
-    if not (API.ReadPlayerAnim() == ID_Anim.WildyWall) and not API.ReadPlayerMovin2() and (not API.CheckAnim(25)) then
+    local Mage = API.GetAllObjArray1({ID_NPC.MAGE}, 50, {1})
+    local MageCoord = WPOINT.new(Mage.TileX/512,Mage.TileY/512,0)
+    if not (API.ReadPlayerAnim() == ID_Anim.WildyWall) and not API.ReadPlayerMovin2() then
+        API.RandomSleep2(680, 500, 1000)
         API.DoAction_Ability("Surge", 1, API.OFF_ACT_GeneralInterface_route)
         API.logDebug("Doaction: Surge ")
         UTILS.countTicks(2)
         API.DoAction_Surge_Tile(WPOINT.new(3107 + math.random(-4, 4), 3559 + math.random(-4, 4), 0))
         API.RandomSleep2(680, 500, 1000)
-        local Mage = API.GetAllObjArray1({ID_NPC.MAGE}, 100, {1})
-        local MageCoord = WPOINT.new(Mage[1].TileX/512,Mage[1].TileY/512,0)
         if API.Math_DistanceW(MageCoord,API.PlayerCoord()) > 15 then
-            API.DoAction_Dive_Tile(MageCoord)
+            API.DoAction_Dive_Tile(WPOINT.new(Mage.TileX/512,Mage.TileY/512,0))
             API.logDebug("Doaction: Dive to mage")
-            API.logInfo("Mage was found")
         end
         API.RandomSleep2(680, 500, 1000)
         API.DoAction_NPC(0x29, API.OFF_ACT_InteractNPC_route, { ID_NPC.MAGE }, 50)
@@ -942,13 +952,13 @@ end
 
 local function surge()
     if (aioSelectR.string_value == "(Necro) Spirit rune") then
-        API.DoAction_Dive_Tile(WPOINT.new(1313,1969,0))
+        API.DoAction_Surge_Tile(WPOINT.new(1313,1969,0), 5)
     elseif(aioSelectR.string_value == "(Necro) Bone rune") then
-        API.DoAction_Dive_Tile( WPOINT.new(1296,1962,0))
+        API.DoAction_Surge_Tile( WPOINT.new(1296,1962,0), 5)
     elseif (aioSelectR.string_value == "(Necro) Flesh rune") then
-        API.DoAction_Dive_Tile(WPOINT.new(1315,1934,0))
+        API.DoAction_Surge_Tile(WPOINT.new(1315,1934,0), 5)
     elseif (aioSelectR.string_value == "(Necro) Miasma rune") then
-        API.DoAction_Dive_Tile(WPOINT.new(1325,1950,0))
+        API.DoAction_Surge_Tile(WPOINT.new(1325,1950,0), 5)
     end
 end
 
@@ -1002,7 +1012,7 @@ local function CheckforImpureEssence()
 end
 
 local function InventoryCheck()
-    if not (API.ReadPlayerAnim() == ID_Anim.Teleport_DOWN) and not API.ReadPlayerMovin2() and (not API.CheckAnim(50)) then
+    if not (API.ReadPlayerAnim() == ID_Anim.Teleport_DOWN) and not API.ReadPlayerMovin2() then
         if fail > 5 then
             API.logError("couldn't bank properly.")
             API.Write_LoopyLoop(false)
@@ -1014,11 +1024,9 @@ local function InventoryCheck()
                 if not API.ReadPlayerMovin2() then
                     if SurgeDiveAbillity  then
                         API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 65084, 65082 }, 65)
-                        API.logDebug("Doaction: Wildy wall (Surge)")
-                    else
-                        API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
-                        API.logDebug("Doaction: Wildy wall")
                     end
+                    API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
+                    API.logDebug("Doaction: Wildy wall")
                     if needDemonicSkull and isBankpinInterfacePresent() then
                         API.RandomSleep2(5000, 500, 1000)
                     end
@@ -1293,7 +1301,6 @@ while API.Read_LoopyLoop() do
                 elseif API.PInArea(3107, 10, 3559, 10) then
                     API.logDebug("Location found: Near Mage.")
                     DoMage()
-                    API.RandomSleep2(250, 500, 750)
                 elseif not API.ReadPlayerMovin() and p.y < 3521 then
                     API.logDebug("Location found: Wildy but on the wrong side of the wall.")
                     API.DoAction_Object1(0xb5, API.OFF_ACT_GeneralObject_route0, { 5076, 65078, 65077, 65080, 65079, 65082, 65081, 65084, 65083, 65087, 65085, 65105, 65096, 65088, 65102, 65090, 65089, 65092, 65091, 65094, 65093, 65101, 65095, 65103, 65104, 65100, 65099, 65098, 65097, 1440, 1442, 1441, 1444, 1443 },65)
