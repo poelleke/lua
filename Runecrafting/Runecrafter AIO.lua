@@ -414,6 +414,28 @@ local function teleportToEdgeville()
     end
 end
 
+--[[local function teleportToHauntHill()
+    local hh = API.GetABs_name1("Passing bracelet")
+    if #hh.name > 0 then
+        local opts = API.ScanForInterfaceTest2Get(true, { { 720,2,-1,-1,0 }, { 720,16,-1,2,0 }, { 720,9,-1,16,0 } })
+        if isTeleportOptionsUp() then
+                API.KeyboardPress2(0x32, 60, 100)
+                API.RandomSleep2(1000, 1000, 1000)
+                API.logDebug("Info: Use Haunt on the Hill teleport")
+                API.logInfo("Use Haunt on the Hill teleport.")
+       else
+            if hh.enabled then
+                API.DoAction_Ability_Direct(hh, 7, API.OFF_ACT_GeneralInterface_route)
+                API.RandomSleep2(1000, 1000, 1000)
+                API.logDebug("pressing 2 key button.")
+                API.KeyboardPress2(0x32, 60, 100)
+                API.RandomSleep2(1000, 1000, 1000)
+            end
+        end
+    end
+    return false
+end]]
+
 local function teleportToHauntHill()
     local hh = API.GetABs_name1("Passing bracelet")
     if hh.enabled then
@@ -944,19 +966,20 @@ end
 
 local function surge()
     if (aioSelectR.string_value == "(Necro) Spirit rune") then
-        API.DoAction_Dive_Tile(WPOINT.new(1313,1969,0))
+        API.DoAction_Dive_Tile(WPOINT.new(1313 + math.random(-2, 2), 1969 + math.random(-2, 2), 0))
     elseif(aioSelectR.string_value == "(Necro) Bone rune") then
-        API.DoAction_Dive_Tile( WPOINT.new(1296,1962,0))
+        API.DoAction_Dive_Tile( WPOINT.new(1296 + math.random(-2, 2), 1962 + math.random(-2, 2), 0))
     elseif (aioSelectR.string_value == "(Necro) Flesh rune") then
-        API.DoAction_Dive_Tile(WPOINT.new(1315,1934,0))
+        API.DoAction_Dive_Tile(WPOINT.new(1315 + math.random(-2, 2), 1934 + math.random(-2, 2), 0))
     elseif (aioSelectR.string_value == "(Necro) Miasma rune") then
-        API.DoAction_Dive_Tile(WPOINT.new(1325,1950,0))
+        API.DoAction_Dive_Tile(WPOINT.new(1325 + math.random(-2, 2), 1950 + math.random(-2, 2), 0))
     end
 end
 
 local function Craftnecro()
     if not API.ReadPlayerMovin2() then
         if SurgeDiveAbillity and API.PInArea(1313, 5, 1952, 5, 1) then
+            API.RandomSleep2(500, 150, 150)
             surge()
         end
     end
