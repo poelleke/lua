@@ -414,28 +414,6 @@ local function teleportToEdgeville()
     end
 end
 
---[[local function teleportToHauntHill()
-    local hh = API.GetABs_name1("Passing bracelet")
-    if #hh.name > 0 then
-        local opts = API.ScanForInterfaceTest2Get(true, { { 720,2,-1,-1,0 }, { 720,16,-1,2,0 }, { 720,9,-1,16,0 } })
-        if isTeleportOptionsUp() then
-                API.KeyboardPress2(0x32, 60, 100)
-                API.RandomSleep2(1000, 1000, 1000)
-                API.logDebug("Info: Use Haunt on the Hill teleport")
-                API.logInfo("Use Haunt on the Hill teleport.")
-       else
-            if hh.enabled then
-                API.DoAction_Ability_Direct(hh, 7, API.OFF_ACT_GeneralInterface_route)
-                API.RandomSleep2(1000, 1000, 1000)
-                API.logDebug("pressing 2 key button.")
-                API.KeyboardPress2(0x32, 60, 100)
-                API.RandomSleep2(1000, 1000, 1000)
-            end
-        end
-    end
-    return false
-end]]
-
 local function teleportToHauntHill()
     local hh = API.GetABs_name1("Passing bracelet")
     if hh.enabled then
@@ -944,12 +922,12 @@ local function Lodestone()
     end
 end
 
-local function Haunthill()--IsPlayerInDirection then surse to portal
+local function Haunthill()
     if not API.ReadPlayerMovin2() then
         if SurgeDiveAbillity then
             API.DoAction_Object1(0x39, API.OFF_ACT_GeneralObject_route0, {ID_Object.DARK_PORTAL}, 50)
             API.RandomSleep2(1000, 750, 950)
-            API.DoAction_Ability("Surge", 1, API.OFF_ACT_GeneralInterface_route)--TODO Add a oriantation check
+            API.DoAction_Ability("Surge", 1, API.OFF_ACT_GeneralInterface_route)
             API.RandomSleep2(500, 150, 150)
             API.DoAction_Object1(0x39, API.OFF_ACT_GeneralObject_route0, {ID_Object.DARK_PORTAL}, 50)
         else
