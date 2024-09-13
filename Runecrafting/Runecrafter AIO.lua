@@ -52,7 +52,7 @@ local Bankpin           = xxxx-- Your Bankpin
 
 local skill             = "RUNECRAFTING"
 startXp = API.GetSkillXP(skill)
-local version           = "2.2"
+local version           = "2.24"
 local Rune_type         = ""
 local Rune              = ""
 local Familier          = "None"
@@ -1062,6 +1062,9 @@ local function InventoryCheck()
                 elseif API.EquipSlotEq1(7, 56416) then
                     API.logDebug("Item found: Passing Braclet in glove slot.")
                     API.DoAction_Ability_Direct(API.GetABs_name1("Passing bracelet"), 2, API.OFF_ACT_GeneralInterface_route)
+                else
+                    API.logDebug("No Passing Braclet found, time to.")
+                    API.DoAction_Object1(0x39, API.OFF_ACT_GeneralObject_route0, {ID_Object.DARK_PORTAL}, 50)
                 end
                 banking = 0
                 fail = 0
@@ -1258,6 +1261,7 @@ while API.Read_LoopyLoop() do
                 API.logDebug("Location found: Um Loadestone.")
                 Lodestone()
             elseif isAtLocation(AREA.UM_Smithy, 15) then
+                API.logDebug("Location found: Um Smity.")
                 InventoryCheck()
                 API.logDebug("Checking Inventory.")
             elseif isAtLocation(AREA.UM_HauntHill, 5) then
