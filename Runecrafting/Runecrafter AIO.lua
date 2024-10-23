@@ -1098,11 +1098,6 @@ local function gameStateChecks()
         API.Write_LoopyLoop(false)
         return
     end
-    if not API.PlayerLoggedIn() then
-        API.logError('Not Logged In')
-        API.Write_LoopyLoop(false)
-        return;
-    end
 end
 
 setupOptions()
