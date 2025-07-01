@@ -227,11 +227,8 @@ local function eatIcecream()
     
     local activityToCocktailMap = {
         Dung = ID_COCKTAIL.A_Hole_in_One,
-        Strength = ID_COCKTAIL.Pink_fizz,
         Construction = ID_COCKTAIL.Georges_Peach_Delight,
         Hunter = ID_COCKTAIL.Ugly_Duckling,
-        Ranged = ID_COCKTAIL.Pink_fizz,
-        Cooking = ID_COCKTAIL.Purple_Lumbridge,
         Farming = ID_COCKTAIL.Palmer_Farmer,
         Fishing = ID_COCKTAIL.Fishermans_Friend
     }
