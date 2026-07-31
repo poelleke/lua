@@ -135,6 +135,28 @@ function Functions.HasRequiredMaterials(Materials)
 
 end
 
+function Functions.GetFirstBuildableOption(Builds)
+
+    for Build = #Builds, 1, -1 do
+
+        local Widget = API.ScanForInterfaceTest2Get(false, Builds[Build])
+
+        if Widget and Widget.textids then
+
+            local Materials = Functions.ParseRequiredMaterials(Widget.textids)
+
+            if Functions.HasRequiredMaterials(Materials) then
+                return Build, Widget, Materials
+            end
+
+        end
+
+    end
+
+    return nil
+
+end
+
 
 --------------------------------------------------------------------------------
 -- Stop Module
