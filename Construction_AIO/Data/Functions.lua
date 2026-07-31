@@ -187,6 +187,24 @@ function Functions.BuildBestOption(Builds)
 
 end
 
+function Functions.HandleBuildInterface()
+
+    local Build = Functions.GetFirstBuildableOption(Interfaces.Build)
+
+    if not Build then
+        return false
+    end
+
+    if not Functions.SelectBuildOption(Build) then
+        return false
+    end
+
+    API.RandomSleep2(600, 200, 300)
+
+    return true
+
+end
+
 
 --------------------------------------------------------------------------------
 -- Stop Module
