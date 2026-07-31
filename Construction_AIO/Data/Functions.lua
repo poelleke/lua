@@ -157,6 +157,24 @@ function Functions.GetFirstBuildableOption(Builds)
 
 end
 
+function Functions.SelectBuildOption(Build)
+
+    if not Build then
+        return false
+    end
+
+    local Widget = API.ScanForInterfaceTest2Get(false, Interfaces.Build[Build])
+
+    if not Widget then
+        return false
+    end
+
+    API.DoAction_Interface(0xffffffff, Widget.id, 1, Widget.id, 50, API.OFF_ACT_GeneralInterface_route)
+
+    return true
+
+end
+
 
 --------------------------------------------------------------------------------
 -- Stop Module
