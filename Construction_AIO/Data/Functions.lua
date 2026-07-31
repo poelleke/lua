@@ -79,7 +79,28 @@ end
 --========================================================================--
 -- Building interface functions
 --========================================================================--
+function Functions.ParseRequiredMaterials(Text)
 
+    local Materials = {}
+
+    for Line in Text:gmatch("[^\n]+") do
+
+        local ItemName, Needed = Line:match("(.+):%s*(%d+)")
+
+        if ItemName and Needed then
+
+            table.insert(Materials, {
+                Name = ItemName,
+                Needed = tonumber(Needed)
+            })
+
+        end
+
+    end
+
+    return Materials
+
+end
 
 
 --------------------------------------------------------------------------------
