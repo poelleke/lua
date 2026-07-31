@@ -224,11 +224,31 @@ local function isHappyHour()
 end
 
 local function eatIcecream()
+    
+    local activityToCocktailMap = {
+        Dung = ID_COCKTAIL.A_Hole_in_One,
+        Construction = ID_COCKTAIL.Georges_Peach_Delight,
+        Hunter = ID_COCKTAIL.Ugly_Duckling,
+        Farming = ID_COCKTAIL.Palmer_Farmer,
+        Fishing = ID_COCKTAIL.Fishermans_Friend
+    }
+    
+    local requiredCocktailId = activityToCocktailMap[ActivitySelected]
+    
+    if UseCocktail and requiredCocktailId and API.Buffbar_GetIDstatus(requiredCocktailId, false).found then
+        API.logInfo("Advanced cocktail is active, ignoring temperature.")
+        return
+    end
+    
     if not isHeatWave() then
         API.logDebug("Heatwave = false")
         if not isHappyHour() then
             API.logDebug("Happyhour = false")
             if getBeachTemperature() >= 294 then
+                if UseCocktail and requiredCocktailId and API.InvItemcount_1(requiredCocktailId) > 0 then
+                    API.logInfo("Overheating, but an advanced cocktail is available. Letting the activity function handle it.")
+                    return
+                end
                 if API.InvItemFound1(ITEM_IDS.ICECREAM) then
                     API.DoAction_Inventory1(ITEM_IDS.ICECREAM, 0, 1, API.OFF_ACT_GeneralInterface_route)
                     API.RandomSleep2(1200, 0, 200)
