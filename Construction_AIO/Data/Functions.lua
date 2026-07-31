@@ -102,6 +102,39 @@ function Functions.ParseRequiredMaterials(Text)
 
 end
 
+function Functions.HasRequiredMaterials(Materials)
+
+    for _, Material in ipairs(Materials) do
+
+        local Have = 0
+
+        if Data.Items.Nails[Material.Name] then
+
+            Have = Functions.GetRealItemAmount(Data.Items.Nails[Material.Name])
+
+        elseif Data.Items.Materials[Material.Name] then
+
+            Have = Functions.GetRealItemAmount(Data.Items.Materials[Material.Name])
+
+        elseif Data.Items.Bars[Material.Name] then
+
+            Have = Functions.GetRealItemAmount(Data.Items.Bars[Material.Name])
+
+        else
+
+            return false
+        end
+
+        if Have < Material.Needed then
+            return false
+        end
+
+    end
+
+    return true
+
+end
+
 
 --------------------------------------------------------------------------------
 -- Stop Module
