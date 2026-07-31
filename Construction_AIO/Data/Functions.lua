@@ -175,6 +175,18 @@ function Functions.SelectBuildOption(Build)
 
 end
 
+function Functions.BuildBestOption(Builds)
+
+    local Build = Functions.GetFirstBuildableOption(Builds)
+
+    if not Build then
+        return false
+    end
+
+    return Functions.SelectBuildOption(Build)
+
+end
+
 
 --------------------------------------------------------------------------------
 -- Stop Module
