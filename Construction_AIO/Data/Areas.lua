@@ -1,0 +1,3 @@
+local Areas = {}
+
+return Areas
