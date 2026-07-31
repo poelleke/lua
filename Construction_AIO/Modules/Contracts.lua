@@ -40,7 +40,7 @@ local paused = false
 ----------------------------------------------------
 -- USER CONFIGURATION:
 ----------------------------------------------------
-local BankPin = "1993" -- USE: "1234" if you want to set a pin
+local BankPin = nil -- USE: "1234" if you want to set a pin
 
 ----------------------------------------------------
 -- STATES
