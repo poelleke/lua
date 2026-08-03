@@ -9,7 +9,7 @@ local Data = require("Data.Data")
 --========================================================================--
 -- Variables
 --========================================================================--
-local Version = "1.0.1"
+local Version = "1"
 ConstructionGUI.open = true
 local startRequested = false
 local exitRequested = false
@@ -77,15 +77,15 @@ local status = Status.NOT_RUNNING
 -- Theme
 --------------------------------------------------------------------------------
 local THEME = {
-    -- Achtergrond
+    -- Background
     bg      = {0.08, 0.07, 0.06},
-    -- Panelen / Childs
+    -- Panels / child windows
     panel   = {0.24, 0.18, 0.13},
-    -- Lichte houtkleur
+    -- Light wood colour
     light   = {0.55, 0.40, 0.22},
-    -- Accent (titelbalk, hover, selectie)
+    -- Accent (title bar, hover, selection)
     accent  = {0.52, 0.36, 0.18},
-    -- Donker accent (active)
+    -- Dark accent (active)
     accent2 = {0.26, 0.18, 0.10},
 }
 
