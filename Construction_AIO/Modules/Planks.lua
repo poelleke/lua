@@ -5,7 +5,6 @@ local paused = false
 local ShouldContinue = false
 
 local API = require("api")
-local UTILS = require("utils")
 
 local Data = require("Data.Data")
 local Config = require("Config")
@@ -30,7 +29,7 @@ local function Banking()
 
         if API.DoAction_Object1(0x33, API.OFF_ACT_GeneralObject_route3, {Data.Objects.Bank}, 50) then
 
-            if UTILS.SleepUntil(function()
+            if Functions.SleepUntil(function()
 
                 return Inventory:InvItemcount(material.Log) >= 15
 
@@ -59,7 +58,7 @@ local function Banking()
             return
         end
 
-        if not UTILS.SleepUntil(function()
+        if not Functions.SleepUntil(function()
 
             --API.logDebug("Open:", Bank:IsOpen(), "PIN:", Bank:IsPINOpen())
 
@@ -95,7 +94,7 @@ local function Banking()
 
     end
 
-    if not UTILS.SleepUntil(function()
+    if not Functions.SleepUntil(function()
 
         return Inventory:IsEmpty()
 
@@ -140,7 +139,7 @@ local function Banking()
 
     end
 
-    if not UTILS.SleepUntil(function()
+    if not Functions.SleepUntil(function()
 
         return Inventory:Contains(material.Log)
 
@@ -161,7 +160,7 @@ local function Banking()
     
     API.KeyboardPress2(0x1B, 50, 0)
 
-    if not UTILS.SleepUntil(function()
+    if not Functions.SleepUntil(function()
 
         return not Bank:IsOpen()
 
@@ -194,7 +193,7 @@ local function ClickSawmill()
             50
         )
 
-        local interface = UTILS.SleepUntil(
+        local interface = Functions.SleepUntil(
             IsOpen,
             10,
             "interface to open"
@@ -203,7 +202,7 @@ local function ClickSawmill()
         if interface then
             API.KeyboardPress32(0x20, 0)
 
-            UTILS.SleepUntil(
+            Functions.SleepUntil(
                 function()
                     return not IsOpen()
                 end,
