@@ -72,7 +72,7 @@ local function Banking()
 
         API.RandomSleep2(1200, 500, 800)
         
-        -- Alleen de bankende module handelt een PIN-scherm af.
+    -- Only the module currently banking handles a PIN screen.
         if Bank:IsPINOpen() then
             if not Functions.HandleBankPin(Config) then
                 Planks.Stop("Bank PIN handling failed.")
@@ -105,7 +105,7 @@ local function Banking()
 
     end
 
-    -- Laat de bankinterface even bijwerken
+    -- Let the bank interface update briefly.
     API.RandomSleep2(1200, 500, 800)
     end
 
@@ -150,7 +150,7 @@ local function Banking()
 
     end
 
-    -- Laat de inventory verversen voordat de bank sluit
+    -- Let the inventory refresh before closing the bank.
     API.RandomSleep2(1200, 500, 800)
 
     ------------------------------------------------------------------------
