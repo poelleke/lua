@@ -115,7 +115,7 @@ local function ContinueFromOpenFurnitureInterface()
     local matches, selectedName = SelectedFurnitureMatchesTarget()
 
     if matches then
-        API.logInfo("Geselecteerd meubel komt al overeen: " .. selectedName .. "; zoeken overslaan.")
+        API.logInfo("Selected furniture already matches: " .. selectedName .. "; skipping search.")
         SetState(STATE_VERIFY_MATERIALS)
     else
         SetState(STATE_ENTER_SEARCH)
@@ -192,9 +192,9 @@ local function HasConfiguredMaterials(recipe)
 
         local available = totalAmount >= material.needed
         API.logInfo(string.format(
-            "%s | Nodig: %d | Inventory: %d | Plankbox: %d | Totaal: %d | %s",
+            "%s | Needed: %d | Inventory: %d | Plank box: %d | Total: %d | %s",
             material.name, material.needed, inventoryAmount, boxAmount, totalAmount,
-            available and "OK" or "TE WEINIG"
+            available and "OK" or "TOO FEW"
         ))
 
         if not available then
@@ -214,24 +214,24 @@ local function HasAllInterfaceMaterials()
         if nameWidget and nameWidget.memloc and nameWidget.memloc ~= 0 then
             materialCount = materialCount + 1
 
-            local materialName = tostring(nameWidget.textids or "Onbekend materiaal")
+            local materialName = tostring(nameWidget.textids or "Unknown material")
             local statusWidget = ReadMaterialWidget(4 + (row * 6))
             local sprite = ReadMaterialSprite(statusWidget)
 
             if sprite == Data.Furniture.GreenMaterialSprite then
-                API.logInfo("Materiaal beschikbaar via vinkje: " .. materialName)
+                API.logInfo("Material available via checkmark: " .. materialName)
             elseif sprite == Data.Furniture.RedMaterialSprite then
-                API.logError("Materiaal ontbreekt via kruisje: " .. materialName)
+                API.logError("Material missing via cross: " .. materialName)
                 return false
             else
-                API.logError("Onbekende materiaal-sprite: " .. materialName .. " | " .. tostring(sprite))
+                API.logError("Unknown material sprite: " .. materialName .. " | " .. tostring(sprite))
                 return false
             end
         end
     end
 
     if materialCount == 0 then
-        API.logError("Furniture: geen materiaalregels gevonden.")
+        API.logError("Furniture: no material rows found.")
         return false
     end
 
@@ -243,7 +243,7 @@ local function HandleBankPinIfOpen()
         return true
     end
 
-    API.logInfo("Furniture: Bank PIN gedetecteerd.")
+    API.logInfo("Furniture: Bank PIN detected.")
     return Functions.HandleBankPin(Config)
 end
 
@@ -251,7 +251,7 @@ function Furniture.Start()
     targetName = TrimText(Config.FurnitureSearch)
 
     if targetName == "" then
-        API.logError("Furniture: kies eerst een meubel in de GUI.")
+        API.logError("Furniture: select furniture in the GUI first.")
         return false
     end
 
@@ -265,7 +265,7 @@ function Furniture.Start()
 
     if configuredRecipe and not HasConfiguredMaterials(configuredRecipe) then
         materialBankAttempts = 1
-        API.logInfo("Furniture start: onvoldoende preconfig-materialen; bankpoging 1/"
+        API.logInfo("Furniture start: insufficient preset materials; bank attempt 1/"
             .. MAX_MATERIAL_BANK_ATTEMPTS .. ".")
         SetState(STATE_BANK_CHECK_PLANK_BOX)
     else
@@ -309,13 +309,13 @@ function Furniture.Tick()
         end
 
         if now - stateSince > 25 then
-            Furniture.Stop("Furniture interface opende niet na de workbench-actie.")
+            Furniture.Stop("Furniture interface did not open after the workbench action.")
         end
         return
     end
 
     if currentState == STATE_ENTER_SEARCH then
-        API.logInfo("Furniture toets: Enter (zoekveld activeren).")
+        API.logInfo("Furniture key: Enter (activate search field).")
         API.KeyboardPress2(0x0D, 50, 50)
         SetState(STATE_CLEAR_SEARCH)
         return
@@ -326,7 +326,7 @@ function Furniture.Tick()
             return
         end
 
-        API.logInfo("Furniture toets: Esc (vorige zoektekst wissen).")
+        API.logInfo("Furniture key: Esc (clear previous search text).")
         API.KeyboardPress2(0x1B, 50, 50)
         SetState(STATE_REENTER_SEARCH)
         return
@@ -338,11 +338,11 @@ function Furniture.Tick()
         end
 
         if not IsInterfaceOpen() then
-            Furniture.Stop("Furniture interface sloot tijdens het wissen van de zoektekst.")
+            Furniture.Stop("Furniture interface closed while clearing the search text.")
             return
         end
 
-        API.logInfo("Furniture toets: Enter (zoekveld opnieuw activeren).")
+        API.logInfo("Furniture key: Enter (reactivate search field).")
         API.KeyboardPress2(0x0D, 50, 50)
         SetState(STATE_TYPE_SEARCH)
         return
@@ -354,13 +354,13 @@ function Furniture.Tick()
         end
 
         if not IsInterfaceOpen() then
-            Furniture.Stop("Furniture interface sloot voor de zoektekst kon worden verzonden.")
+            Furniture.Stop("Furniture interface closed before the search text could be sent.")
             return
         end
 
         targetName = TrimText(targetName)
         API.TypeOnkeyboard3(targetName)
-        API.logInfo("Zoektekst verzonden: [" .. targetName .. "]")
+        API.logInfo("Search text sent: [" .. targetName .. "]")
         SetState(STATE_SUBMIT_SEARCH)
         return
     end
@@ -371,11 +371,11 @@ function Furniture.Tick()
         end
 
         if not IsInterfaceOpen() then
-            Furniture.Stop("Furniture interface sloot tijdens het bevestigen van de zoektekst.")
+            Furniture.Stop("Furniture interface closed while confirming the search text.")
             return
         end
 
-        API.logInfo("Furniture toets: Enter (zoekopdracht bevestigen).")
+        API.logInfo("Furniture key: Enter (confirm search).")
         API.KeyboardPress2(0x0D, 50, 50)
         SetState(STATE_WAIT_RESULTS)
         return
@@ -393,20 +393,20 @@ function Furniture.Tick()
 
         local noResults = ReadText(Data.Interfaces.Furniture.NoResultsPath):lower()
         if noResults:find("no items available", 1, true) then
-            Furniture.Stop("Geen Furniture-resultaat voor: " .. targetName)
+            Furniture.Stop("No Furniture result for: " .. targetName)
             return
         end
 
         local resultId = FindSingleResult()
         if resultId then
-            API.logInfo("Selecteer Furniture-resultaat: " .. resultId)
+            API.logInfo("Select Furniture result: " .. resultId)
             API.DoAction_Interface(0xffffffff, 0xffffffff, 1, Data.Interfaces.Furniture.MainId, 25, resultId, API.OFF_ACT_GeneralInterface_route)
             SetState(STATE_WAIT_SELECTED)
             return
         end
 
         if now - stateSince > 4 then
-            Furniture.Stop("Geen uniek Furniture-resultaat gevonden.")
+            Furniture.Stop("No unique Furniture result found.")
         end
         return
     end
@@ -418,13 +418,13 @@ function Furniture.Tick()
 
         local selectedName = ReadText(Data.Interfaces.Furniture.SelectedPath)
         if selectedName:lower() == targetName:lower() then
-            API.logInfo("Geselecteerd meubel bevestigd: " .. selectedName)
+            API.logInfo("Selected furniture confirmed: " .. selectedName)
             SetState(STATE_VERIFY_MATERIALS)
             return
         end
 
         if now - stateSince > 3 then
-            Furniture.Stop("Geselecteerd Furniture-resultaat klopt niet: " .. selectedName)
+            Furniture.Stop("Selected Furniture result does not match: " .. selectedName)
         end
         return
     end
@@ -434,16 +434,16 @@ function Furniture.Tick()
         if configuredRecipe then
             available = HasConfiguredMaterials(configuredRecipe)
         else
-            API.logInfo("Vrije meubelkeuze: materiaalvinkjes in de interface controleren.")
+            API.logInfo("Free furniture selection: checking interface material checkmarks.")
             available = HasAllInterfaceMaterials()
         end
 
         if not available then
-            Furniture.Stop("Materialen zijn niet volledig beschikbaar.")
+            Furniture.Stop("Materials are not fully available.")
             return
         end
 
-        API.logInfo("Alle materialen zijn beschikbaar. Bouwen starten met Spatie.")
+        API.logInfo("All materials are available. Start building with Space.")
         SetState(STATE_CONSTRUCT)
         return
     end
@@ -453,7 +453,7 @@ function Furniture.Tick()
             return
         end
 
-        API.logInfo("Furniture toets: Spatie (bouwen starten).")
+        API.logInfo("Furniture key: Space (start building).")
         API.KeyboardPress32(0x20, 0)
         SetState(STATE_WAIT_PROCESSING_START)
         return
@@ -461,23 +461,23 @@ function Furniture.Tick()
 
     if currentState == STATE_WAIT_PROCESSING_START then
         if API.isProcessing() then
-            API.logInfo("Furniture bouwen gestart.")
+            API.logInfo("Furniture building started.")
             SetState(STATE_WAIT_PROCESSING_FINISH)
             return
         end
 
         if now - stateSince > PROCESSING_START_TIMEOUT then
-            Furniture.Stop("Furniture-bouwactie startte niet na Spatie.")
+            Furniture.Stop("Furniture build action did not start after Space.")
         end
         return
     end
 
     if currentState == STATE_WAIT_PROCESSING_FINISH and not API.isProcessing() then
         if Config.FurnitureUseStorage then
-            API.logInfo("Furniture-bouwbatch voltooid. Items naar Furniture storage.")
+            API.logInfo("Furniture build batch complete. Sending items to Furniture storage.")
             SetState(STATE_STORAGE_OPEN)
         else
-            API.logInfo("Furniture-bouwbatch voltooid. Naar bankcyclus.")
+            API.logInfo("Furniture build batch complete. Going to bank cycle.")
             SetState(STATE_BANK_CHECK_PLANK_BOX)
         end
         return
@@ -488,7 +488,7 @@ function Furniture.Tick()
             return
         end
 
-        API.logInfo("Furniture storage: openen.")
+        API.logInfo("Furniture storage: opening.")
         storageCloseAttempts = 0
         API.DoAction_Object1(
             0x31,
@@ -504,14 +504,14 @@ function Furniture.Tick()
     if currentState == STATE_STORAGE_WAIT_OPEN then
         if not IsStorageOpen() then
             if now - stateSince > 20 then
-                Furniture.Stop("Furniture storage interface 1518 opende niet.")
+                Furniture.Stop("Furniture storage interface 1518 did not open.")
             end
             return
         end
 
         if not storageOpenedAt then
             storageOpenedAt = now
-            API.logInfo("Furniture storage interface 1518 geopend.")
+            API.logInfo("Furniture storage interface 1518 opened.")
             return
         end
 
@@ -523,11 +523,11 @@ function Furniture.Tick()
 
     if currentState == STATE_STORAGE_STORE_ITEMS then
         if not IsStorageOpen() then
-            Furniture.Stop("Furniture storage sloot voordat items konden worden opgeslagen.")
+            Furniture.Stop("Furniture storage closed before items could be stored.")
             return
         end
 
-        API.logInfo("Furniture storage toets: Spatie (items opslaan).")
+        API.logInfo("Furniture storage key: Space (store items).")
         API.KeyboardPress32(0x20, 0)
         SetState(STATE_STORAGE_CLOSE)
         return
@@ -538,7 +538,7 @@ function Furniture.Tick()
             return
         end
 
-        API.logInfo("Furniture storage toets: Esc (storage sluiten).")
+        API.logInfo("Furniture storage key: Esc (close storage).")
         API.KeyboardPress2(0x1B, 60, 100)
         storageCloseAttempts = 1
         SetState(STATE_STORAGE_WAIT_CLOSE)
@@ -547,19 +547,19 @@ function Furniture.Tick()
 
     if currentState == STATE_STORAGE_WAIT_CLOSE then
         if not IsStorageOpen() and now - stateSince >= STORAGE_CLOSE_SETTLE_DELAY then
-            API.logInfo("Furniture storage: klaar. Naar bankcyclus.")
+            API.logInfo("Furniture storage: complete. Going to bank cycle.")
             SetState(STATE_BANK_CHECK_PLANK_BOX)
             return
         end
 
         if now - stateSince >= STORAGE_CLOSE_SETTLE_DELAY then
             if storageCloseAttempts < 2 then
-                API.logInfo("Furniture storage blijft open; tweede Esc versturen.")
+                API.logInfo("Furniture storage remains open; sending a second Esc.")
                 API.KeyboardPress2(0x1B, 60, 100)
                 storageCloseAttempts = 2
                 SetState(STATE_STORAGE_WAIT_CLOSE)
             else
-                Furniture.Stop("Furniture storage sloot niet na twee keer Esc.")
+                Furniture.Stop("Furniture storage did not close after two Esc presses.")
             end
         end
         return
@@ -578,27 +578,27 @@ function Furniture.Tick()
 
     if currentState == STATE_BANK_WAIT_PRESET then
         if not HandleBankPinIfOpen() then
-            Furniture.Stop("Bank PIN handling failed tijdens Load last preset.")
+            Furniture.Stop("Bank PIN handling failed during Load last preset.")
             return
         end
 
         if now - stateSince >= PRESET_SETTLE_DELAY then
             if configuredRecipe and not HasConfiguredMaterials(configuredRecipe) then
                 if materialBankAttempts >= MAX_MATERIAL_BANK_ATTEMPTS then
-                    Furniture.Stop("Na " .. MAX_MATERIAL_BANK_ATTEMPTS
-                        .. " bankpogingen zijn de preconfig-materialen nog onvoldoende.")
+                    Furniture.Stop("After " .. MAX_MATERIAL_BANK_ATTEMPTS
+                        .. " bank attempts, preset materials are still insufficient.")
                     return
                 end
 
                 materialBankAttempts = materialBankAttempts + 1
-                API.logWarn("Furniture bank: materialen nog onvoldoende; bankpoging "
+                API.logWarn("Furniture bank: materials are still insufficient; bank attempt "
                     .. materialBankAttempts .. "/" .. MAX_MATERIAL_BANK_ATTEMPTS .. ".")
                 SetState(STATE_BANK_CHECK_PLANK_BOX)
                 return
             end
 
             materialBankAttempts = 0
-            API.logInfo("Furniture bank: preset geladen; geselecteerde meubel opnieuw bouwen.")
+            API.logInfo("Furniture bank: preset loaded; rebuilding selected furniture.")
             SetState(STATE_OPEN_WORKBENCH)
         end
         return
@@ -608,12 +608,12 @@ function Furniture.Tick()
         local plankBoxAmount = Functions.GetRealItemAmount("Plank box")
 
         if plankBoxAmount <= 0 then
-            API.logInfo("Furniture bank: geen plank box in inventory; preset laden.")
+            API.logInfo("Furniture bank: no Plank box in inventory; loading preset.")
             SetState(STATE_BANK_LOAD_PRESET)
             return
         end
 
-        API.logInfo("Furniture bank: plank box gevonden: " .. plankBoxAmount)
+        API.logInfo("Furniture bank: Plank box found: " .. plankBoxAmount)
         SetState(STATE_BANK_OPEN)
         return
     end
@@ -623,7 +623,7 @@ function Furniture.Tick()
             return
         end
 
-        API.logInfo("Furniture bank: bank openen.")
+        API.logInfo("Furniture bank: opening bank.")
         API.DoAction_Object1(0x33, API.OFF_ACT_GeneralObject_route1, { Data.Objects.Bank }, 50)
         SetState(STATE_BANK_WAIT_OPEN)
         return
@@ -631,24 +631,24 @@ function Furniture.Tick()
 
     if currentState == STATE_BANK_WAIT_OPEN then
         if not HandleBankPinIfOpen() then
-            Furniture.Stop("Bank PIN handling failed tijdens bank openen.")
+            Furniture.Stop("Bank PIN handling failed while opening the bank.")
             return
         end
 
         if API.BankOpen2() then
-            API.logInfo("Furniture bank: bank geopend.")
+        API.logInfo("Furniture bank: bank opened.")
             SetState(STATE_BANK_FILL_PLANK_BOX)
             return
         end
 
         if now - stateSince > BANK_OPEN_TIMEOUT then
-            Furniture.Stop("Furniture bank kon niet worden geopend.")
+            Furniture.Stop("Furniture bank could not be opened.")
         end
         return
     end
 
     if currentState == STATE_BANK_FILL_PLANK_BOX then
-        API.logInfo("Furniture bank: plank box vullen.")
+        API.logInfo("Furniture bank: filling Plank box.")
         API.DoAction_Bank_Inv(
             Data.Items.misc.plank_box,
             8,
@@ -663,7 +663,7 @@ function Furniture.Tick()
             return
         end
 
-        API.logInfo("Furniture bank: bank sluiten.")
+        API.logInfo("Furniture bank: closing bank.")
         API.KeyboardPress2(0x1B, 60, 100)
         SetState(STATE_BANK_WAIT_CLOSE)
         return
@@ -671,13 +671,13 @@ function Furniture.Tick()
 
     if currentState == STATE_BANK_WAIT_CLOSE then
         if not API.BankOpen2() then
-            API.logInfo("Furniture bank: plank box gevuld; preset laden.")
+            API.logInfo("Furniture bank: Plank box filled; loading preset.")
             SetState(STATE_BANK_LOAD_PRESET)
             return
         end
 
         if now - stateSince > 5 then
-            Furniture.Stop("Furniture bank sloot niet.")
+            Furniture.Stop("Furniture bank did not close.")
         end
     end
 end
@@ -685,7 +685,7 @@ end
 function Furniture.Pause()
     if running then
         paused = true
-        API.logInfo("Furniture gepauzeerd.")
+        API.logInfo("Furniture paused.")
     end
 end
 
@@ -694,7 +694,7 @@ function Furniture.Resume()
         targetName = TrimText(Config.FurnitureSearch)
 
         if targetName == "" then
-            Furniture.Stop("Geen Furniture-naam gekozen bij hervatten.")
+            Furniture.Stop("No Furniture name selected when resuming.")
             return
         end
 
@@ -703,11 +703,11 @@ function Furniture.Resume()
 
         if configuredRecipe and not HasConfiguredMaterials(configuredRecipe) then
             materialBankAttempts = 1
-            API.logInfo("Furniture hervat: onvoldoende preconfig-materialen; bankpoging 1/"
+            API.logInfo("Furniture resumed: insufficient preset materials; bank attempt 1/"
                 .. MAX_MATERIAL_BANK_ATTEMPTS .. ".")
             SetState(STATE_BANK_CHECK_PLANK_BOX)
         else
-            API.logInfo("Furniture hervat; geselecteerd meubel opnieuw controleren.")
+            API.logInfo("Furniture resumed; rechecking selected furniture.")
             SetState(STATE_OPEN_WORKBENCH)
         end
     end
