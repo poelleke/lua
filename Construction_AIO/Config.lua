@@ -1,10 +1,10 @@
 local Config = {}
 
--- Configuratiebestand
+-- Configuration file
 Config.Directory = os.getenv("USERPROFILE") .. "\\MemoryError\\Lua_Scripts\\configs\\"
 Config.File = Config.Directory .. "Construction_AIO.cfg"
 
--- Instellingen
+-- Settings
 Config.UseBankPin = false
 Config.BankPin = ""
 
@@ -20,7 +20,7 @@ Config.FurniturePlankType = 0
 Config.FurnitureMode = 0
 Config.FurnitureUseStorage = false
 
--- Slaat de volledige Config-tabel op
+-- Saves the complete Config table
 function Config.Save()
 
     os.execute('mkdir "' .. Config.Directory .. '" >nul 2>&1')
@@ -41,7 +41,7 @@ function Config.Save()
 
 end
 
--- Laadt de volledige Config-tabel
+-- Loads the complete Config table
 function Config.Load()
 
     local file = io.open(Config.File, "r")
