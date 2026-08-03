@@ -2,9 +2,6 @@
 
 > A RuneScape 3 Construction helper for **Construction Contracts**, **Furniture Construction**, and **Plank Making**.
 
-![Status](https://img.shields.io/badge/status-beta-f4a62a?style=flat-square)
-![Activities](https://img.shields.io/badge/activities-3-7b5428?style=flat-square)
-
 ---
 
 ## ✨ Included activities
@@ -36,9 +33,6 @@
    ├── Data/
    └── Modules/
    ```
-
-> ⚠️ `Main.lua` expects this exact folder location. Do not rename the `Construction_AIO` folder unless you also update `SCRIPT_DIR` in `Main.lua`.
-
 ---
 
 ## 🎛️ Before pressing Start
@@ -180,24 +174,7 @@ The separate MemoryError **Logs** and **Tracked Skills** overlays are enabled by
 | `No plank box found` | This is a warning, not an error. Planks will be counted from the inventory only. |
 | `Bank could not be opened` | Make sure the player reached Home and can interact with the bank chest. |
 | `Furniture interface did not open` | Stand within reach of the Furniture workbench and make sure the player is not already moving/processing another action. |
-| `Furniture storage interface 1518 did not open` | Move close to Furniture storage, or disable the storage option. |
+| `Furniture storage interface did not open` | Move close to Furniture storage, or disable the storage option. |
 | `Build interface did not open` | The repair hotspot may be blocked or not reachable. Do not move the player manually; share the complete log for that contract. |
 
 ---
-
-## 🧪 Reporting a bug
-
-When reporting an issue, include:
-
-1. The selected activity and its GUI settings.
-2. A screenshot of the player/interface if relevant.
-3. The complete log from **Start pressed** until the first error or unexpected action.
-4. The current inventory when the issue is material or banking related.
-
-That makes it possible to fix the first real failure instead of a later side effect.
-
----
-
-## ⚠️ Beta notice
-
-This project is still in beta. Supported Contract navigation is data-driven and new buildings, doors, routes, or interface changes may need to be added over time. Test changes carefully and keep a backup of your working script folder.
