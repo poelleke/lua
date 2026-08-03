@@ -60,7 +60,7 @@ local CurrentContract = {
 }
 
 ----------------------------------------------------
--- CONSTANTEN
+-- CONSTANTS
 ----------------------------------------------------
 local inter_location = Data.Interfaces.Location
 local inter_npc      = Data.Interfaces.NPC
@@ -116,7 +116,7 @@ local function CheckContract()
     
     return false, nil, nil, nil
 end
--- Hulpfunctie om te kijken hoeveel taken klaar zijn
+-- Helper function to count completed tasks
 local function GetCompletedTasks()
 
     local completed = 0
@@ -147,7 +147,7 @@ local function GetCompletedTasks()
 
 end
 
--- Houd lange wachttijden onderbreekbaar voor de GUI-knoppen.
+-- Keep longer waits interruptible for the GUI controls.
 local function WaitForControl(seconds)
     local deadline = os.clock() + seconds
 
@@ -173,7 +173,7 @@ local function WaitForCompletionUpdate(timeout)
         if Functions.HasPendingRequest() then
             return completed, total
         end
-        API.logDebug("Wacht op contract-update: " .. completed .. "/" .. total)
+        API.logDebug("Waiting for contract update: " .. completed .. "/" .. total)
         if not WaitForControl(0.5) then
             return completed, total
         end
@@ -220,7 +220,7 @@ local function GetRandomPointInArea(area, inset)
 
         if not API.CheckTileforObjects1(tile) then
             API.logDebug(string.format(
-                "Walk target gekozen: (%d,%d) rond area-midden (%d,%d).",
+                "Walk target selected: (%d,%d) around area centre (%d,%d).",
                 x,
                 y,
                 centerX,
@@ -232,7 +232,7 @@ local function GetRandomPointInArea(area, inset)
     end
 
     API.logWarn(string.format(
-        "Walk target: geen objectvrije tegel gevonden rond (%d,%d); midden wordt gebruikt.",
+        "Walk target: no object-free tile found around (%d,%d); using centre.",
         centerX,
         centerY
     ))
@@ -289,7 +289,7 @@ end
 
 local function WalkToPoint(x, y, z)
 
-    API.logDebug(string.format( "WalkToPoint: Klik op (%d, %d, %d).", x, y, z ))
+    API.logDebug(string.format( "WalkToPoint: Clicking (%d, %d, %d).", x, y, z ))
 
     API.DoAction_Tile(WPOINT.new(x, y, z))
 
@@ -306,7 +306,7 @@ local function IsDoorInNextWalk(door)
 
     local distance = math.sqrt(dx * dx + dy * dy)
 
-    local step = 30        -- maximale stapgrootte van WalkToArea()
+    local step = 30        -- maximum WalkToArea() step size
 
     if distance < step then
         step = distance
@@ -336,13 +336,13 @@ end
 local function WalkToArea(area, allowTravelAbility, ignoreAreaReached)
 
     if not ignoreAreaReached and IsPlayerInArea(area) then
-        API.logInfo("WalkToArea: Speler is al in de building area.")
+        API.logInfo("WalkToArea: Player is already in the building area.")
         return true
     end
 
     local pos = API.PlayerCoord()
 
-    API.logDebug(string.format( "WalkToArea: Van (%d,%d) naar (%d,%d)", pos.x, pos.y, CurrentContract.walkTarget.x, CurrentContract.walkTarget.y ))
+    API.logDebug(string.format( "WalkToArea: From (%d,%d) to (%d,%d)", pos.x, pos.y, CurrentContract.walkTarget.x, CurrentContract.walkTarget.y ))
 
     local dx = CurrentContract.walkTarget.x - pos.x
     local dy = CurrentContract.walkTarget.y - pos.y
@@ -358,7 +358,7 @@ local function WalkToArea(area, allowTravelAbility, ignoreAreaReached)
         local walkX = math.floor(pos.x + nx * step)
         local walkY = math.floor(pos.y + ny * step)
 
-        API.logDebug(string.format( "WalkToArea: Afstand %.1f | Stap %d | Tussenpunt (%d,%d)", distance, step, walkX, walkY ))
+        API.logDebug(string.format( "WalkToArea: Distance %.1f | Step %d | Midpoint (%d,%d)", distance, step, walkX, walkY ))
 
         if allowTravelAbility
             and Config.ContractsUseTravelAbilities ~= false
@@ -370,7 +370,7 @@ local function WalkToArea(area, allowTravelAbility, ignoreAreaReached)
 
     else
 
-        API.logDebug(string.format( "WalkToArea: Afstand %.1f | Stap %d | Eindpunt (%d,%d)", distance, step, CurrentContract.walkTarget.x, CurrentContract.walkTarget.y ))
+        API.logDebug(string.format( "WalkToArea: Distance %.1f | Step %d | Endpoint (%d,%d)", distance, step, CurrentContract.walkTarget.x, CurrentContract.walkTarget.y ))
 
         if allowTravelAbility
             and Config.ContractsUseTravelAbilities ~= false
@@ -393,7 +393,7 @@ local function WalkToArea(area, allowTravelAbility, ignoreAreaReached)
             CurrentContract.walkTargetLastAttemptAt = nil
 
             API.logWarn(string.format(
-                "Walk target niet bereikbaar na %d pogingen: (%d,%d) -> nieuw target (%d,%d).",
+                "Walk target unreachable after %d attempts: (%d,%d) -> new target (%d,%d).",
                 WALK_TARGET_MAX_ATTEMPTS,
                 oldTarget.x,
                 oldTarget.y,
@@ -408,7 +408,7 @@ local function WalkToArea(area, allowTravelAbility, ignoreAreaReached)
         CurrentContract.walkTargetLastAttemptAt = now
 
         API.logDebug(string.format(
-            "Walk target poging %d/%d.",
+            "Walk target attempt %d/%d.",
             CurrentContract.walkTargetAttempts,
             WALK_TARGET_MAX_ATTEMPTS
         ))
@@ -438,7 +438,7 @@ local function OpenLodestoneInterface()
     while os.clock() < timeout do
 
         if API.Compare2874Status(30, false) then
-            API.logInfo("OpenLodestoneInterface: Interface geopend.")
+            API.logInfo("OpenLodestoneInterface: Interface opened.")
             return true
         end
 
@@ -458,7 +458,7 @@ local function ClickLodestone(location)
     local id = Data.Lodestones[location]
 
     if not id then
-        API.logError("ClickLodestone: Onbekende locatie: "..tostring(location))
+        API.logError("ClickLodestone: Unknown location: "..tostring(location))
         return false
     end
 
@@ -472,7 +472,7 @@ end
 
 local function WaitForTeleport(area)
 
-    API.logInfo("WaitForTeleport: Wachten op teleport.")
+    API.logInfo("WaitForTeleport: Waiting for teleport.")
 
     local timeout = os.clock() + 15
 
@@ -480,14 +480,14 @@ local function WaitForTeleport(area)
 
         if IsPlayerInArea(area) then
 
-            API.logInfo("WaitForTeleport: Area bereikt.")
+            API.logInfo("WaitForTeleport: Area reached.")
 
-            -- Geef de RS3-client de tijd om alles te laden.
+            -- Give the RS3 client time to load everything.
             if not WaitForControl(2.5) then
                 return false
             end
 
-            API.logInfo("WaitForTeleport: Teleport voltooid.")
+            API.logInfo("WaitForTeleport: Teleport complete.")
             return true
 
         end
@@ -551,11 +551,11 @@ end
 
 local function HandleDoor(door)
 
-    API.logDebug("Controleer deur: " .. door.name)
+    API.logDebug("Checking door: " .. door.name)
 
-    -- Staat de deur al open?
+    -- Is the door already open?
     if IsDoorOpen(door) then
-        API.logDebug(door.name .. ": deur staat al open.")
+        API.logDebug(door.name .. ": door is already open.")
         if not WaitForControl(0.3) then
             return false
         end
@@ -565,11 +565,11 @@ local function HandleDoor(door)
     local objects = API.FindObject_string({door.object_name}, 50)
 
     if not objects or #objects == 0 then
-        API.logError("Geen deur gevonden: " .. door.name)
+        API.logError("No door found: " .. door.name)
         return false
     end
 
-    -- Zoek gesloten deur
+    -- Find closed door
     for _, obj in ipairs(objects) do
         for _, closedDoor in ipairs(door.closed) do
 
@@ -578,46 +578,46 @@ local function HandleDoor(door)
             and math.floor(obj.TileY / 512) == closedDoor.y
             and obj.Floor == closedDoor.floor then
 
-                API.logDebug(door.name .. ": gesloten deur gevonden.")
+                API.logDebug(door.name .. ": closed door found.")
 
                 local p = API.PlayerCoord()
                 API.logDebug("Player: " .. p.x .. "," .. p.y .. "," .. p.z)
-                API.logDebug("Klik deur: " .. closedDoor.id)
+                API.logDebug("Clicking door: " .. closedDoor.id)
 
                 API.DoAction_Object2( 0x31, API.OFF_ACT_GeneralObject_route0, { closedDoor.id }, 50, WPOINT.new( closedDoor.x, closedDoor.y, closedDoor.floor ) )
 
-                -- Ruim de tijd geven om naar de deur te lopen en deze te openen
+                -- Allow enough time to walk to and open the door.
                 if not WaitForControl(4) then
                     return false
                 end
 
-                -- Opnieuw controleren
+                -- Check again
                 if IsDoorOpen(door) then
-                    API.logDebug(door.name .. ": deur succesvol geopend.")
+                    API.logDebug(door.name .. ": door opened successfully.")
                     if not WaitForControl(0.4) then
                         return false
                     end
                     return true
                 end
 
-                API.logDebug(door.name .. ": deur is nog niet open.")
+                API.logDebug(door.name .. ": door is not open yet.")
                 return false
 
             end
         end
     end
 
-    API.logError(door.name .. ": geen passende deurstatus gevonden.")
+    API.logError(door.name .. ": no matching door status found.")
     return false
 
 end
 
 local function HandleStairs()
 
-    API.logDebug("=== HandleStairs gestart ===")
+    API.logDebug("=== HandleStairs started ===")
 
     if not CurrentContract.stairs then
-        API.logError("Geen trapgegevens beschikbaar.")
+        API.logError("No stair data available.")
         return false
     end
 
@@ -633,9 +633,9 @@ local function HandleStairs()
         targetFloor = 0
     end
 
-    API.logDebug("Trap: " .. stair.action)
+    API.logDebug("Stairs: " .. stair.action)
 
-    API.logDebug("Klik trap: " .. stair.id)
+    API.logDebug("Clicking stairs: " .. stair.id)
 
     API.DoAction_Object2(
         0x34,
@@ -652,14 +652,14 @@ local function HandleStairs()
 
     while os.clock() < hardDeadline do
         if API.PlayerCoord().z == targetFloor then
-            API.logDebug("Trap succesvol gebruikt.")
+            API.logDebug("Stairs used successfully.")
             return true
         end
 
         if IsPlayerMoving() then
             if not movementStarted then
                 movementStarted = true
-                API.logDebug("Trap: speler is onderweg.")
+                API.logDebug("Stairs: player is moving.")
             end
             lastMovingAt = os.clock()
 
@@ -677,7 +677,7 @@ local function HandleStairs()
         end
     end
 
-    API.logError("Verdieping niet veranderd.")
+    API.logError("Floor did not change.")
     return false
 
 end
@@ -695,19 +695,19 @@ local function ReadContractChat()
                 local credits = text:match("You gain (%d+) contract credits%.")
                 if credits then
                     ContractStats.creditsEarned = ContractStats.creditsEarned + tonumber(credits)
-                    API.logInfo("Contract credits verdiend: " .. credits)
+                    API.logInfo("Contract credits earned: " .. credits)
                 end
 
                 if string.find(text, "do not have the materials") then
-                    API.logError("Build error: onvoldoende materialen.")
+                    API.logError("Build error: insufficient materials.")
                     result = result or "NO_MATERIALS"
 
                 elseif string.find(text, "Contract completed%. Speak to the estate agent to get a new one%.") then
-                    API.logDebug("Contract voltooid via chatmelding.")
+                    API.logDebug("Contract completed via chat message.")
                     result = result or "CONTRACT_COMPLETED"
 
                 elseif string.find(text, "You do not currently have a construction contract.") then
-                    API.logError("Contract error: geen actief contract.")
+                    API.logError("Contract error: no active contract.")
                     result = result or "NO_CONTRACT"
 
                 end
@@ -811,7 +811,7 @@ local function FindPriorityRepairObject()
 
     for _, obj in ipairs(objects) do
         if obj.Floor == playerFloor and IsPriorityRepairObject(obj) then
-            API.logDebug("Prioriteit repair-object: " .. obj.Name)
+            API.logDebug("Priority repair object: " .. obj.Name)
             return obj
         end
     end
@@ -889,8 +889,8 @@ local function FindNextRouteRepairObject()
 
     local playerRoom = GetRoomAtPosition(route, API.PlayerCoord())
 
-    -- De bartender-route beschrijft alleen kamers op verdieping 1.
-    -- Scan de begane grond normaal zonder de bovenkamer-volgorde af te werken.
+    -- The bartender route only describes rooms on floor 1.
+    -- Scan the ground floor normally without applying the upstairs room order.
     if not playerRoom then
         return FindClosestRepairObject()
     end
@@ -907,11 +907,11 @@ local function FindNextRouteRepairObject()
         local repair = FindClosestRepairObjectInRoom(route, roomName)
 
         if repair then
-            API.logDebug("Bartender routekamer: " .. roomName)
+            API.logDebug("Bartender route room: " .. roomName)
             return repair
         end
 
-        API.logDebug("Bartender routekamer klaar: " .. roomName)
+        API.logDebug("Bartender route room complete: " .. roomName)
         CurrentContract.routeRepairIndex = CurrentContract.routeRepairIndex + 1
     end
 
@@ -1030,14 +1030,14 @@ local function OpenRouteDoorBeforeRepair(obj)
 
     local path = GetDoorPath(route, startRoom, targetRoom)
     if not path then
-        API.logError("Geen deurroute gevonden: " .. startRoom .. " -> " .. targetRoom)
+        API.logError("No door route found: " .. startRoom .. " -> " .. targetRoom)
         return false
     end
 
     for _, door in ipairs(path) do
         if not IsRouteDoorOpen(door) then
             API.logDebug(string.format(
-                "Deurroute: %s -> %s | open deur %d op (%d,%d,%d)",
+                "Door route: %s -> %s | opening door %d at (%d,%d,%d)",
                 startRoom, targetRoom, door.closed.id, door.closed.x, door.closed.y, door.closed.floor
             ))
 
@@ -1066,12 +1066,12 @@ local function OpenAccessDoorBeforeRepair(obj, forceBeforeStairs)
 
     local player = API.PlayerCoord()
 
-    -- Een nabij hotspot is al direct bereikbaar. Een deur vooraf openen kan
-    -- hier juist op de route naar die hotspot terechtkomen.
+    -- A nearby hotspot is already directly reachable. Opening a door first
+    -- could place it directly in the route to that hotspot.
     if not forceBeforeStairs
     and obj.Floor == player.z
     and obj.Distance <= 2 then
-        API.logDebug("Toegangsdeur overslaan: repair-object is al bereikbaar.")
+        API.logDebug("Skipping access door: repair object is already reachable.")
         return false
     end
 
@@ -1104,8 +1104,8 @@ local function OpenAccessDoorBeforeRepair(obj, forceBeforeStairs)
 
             API.logDebug(string.format(
                 forceBeforeStairs
-                    and "Trap-toegangsdeur eerst openen: %d op (%d,%d,%d)"
-                    or "Toegangsdeur eerst openen: %d op (%d,%d,%d)",
+                    and "Opening stair access door first: %d at (%d,%d,%d)"
+                    or "Opening access door first: %d at (%d,%d,%d)",
                 door.id, door.x, door.y, door.floor
             ))
 
@@ -1138,7 +1138,7 @@ local function RepairFloor()
             CurrentContract.repairPhase = "wait_interface_delay"
             CurrentContract.repairNextAt = now + 0.8
         elseif now > CurrentContract.repairDeadline then
-            StopReason = "Build object kon niet bereikt worden."
+            StopReason = "Build object could not be reached."
             CurrentContract.repairPhase = nil
             return "stop"
         end
@@ -1155,11 +1155,11 @@ local function RepairFloor()
 
     if CurrentContract.repairPhase == "wait_interface" then
         if API.GetInterfaceOpenBySize(1306) then
-            API.logInfo("Build interface geopend.")
+            API.logInfo("Build interface opened.")
             CurrentContract.repairPhase = "select_build"
             CurrentContract.repairNextAt = now + 0.5
         elseif now > CurrentContract.repairDeadline then
-            StopReason = "Build interface opende niet."
+            StopReason = "Build interface did not open."
             CurrentContract.repairPhase = nil
             return "stop"
         end
@@ -1200,7 +1200,7 @@ local function RepairFloor()
             if HasError() == "NO_MATERIALS" then
                 return "bank"
             end
-            StopReason = "Repair is niet voltooid na de geselecteerde build-optie."
+            StopReason = "Repair did not complete after the selected build option."
             return "stop"
         end
         return "pending"
@@ -1209,7 +1209,7 @@ local function RepairFloor()
     local obj = FindPriorityRepairObject() or FindNextRouteRepairObject()
 
     if not obj then
-        API.logInfo("Geen repair object gevonden op deze verdieping.")
+        API.logInfo("No repair object found on this floor.")
         return "done"
     end
 
@@ -1228,7 +1228,7 @@ local function RepairFloor()
     }
 
     API.logDebug(string.format(
-        "Repair object: %s | afstand: %.2f | verdieping: %d",
+        "Repair object: %s | distance: %.2f | floor: %d",
         obj.Name,
         obj.Distance,
         obj.Floor
@@ -1249,7 +1249,7 @@ end
 
 local function TeleportHome()
 
-    API.logInfo("Gebruik House Teleport.")
+    API.logInfo("Using House Teleport.")
 
     API.DoAction_Ability_Direct(
         API.GetABs_name1("House Teleport"),
@@ -1268,11 +1268,11 @@ local function HandInContract()
     API.logDebug("NPC object: " .. tostring(npc))
 
     if not npc then
-        API.logError("Estate agent niet gevonden.")
+        API.logError("Estate agent not found.")
         return false
     end
 
-    API.logInfo("Praat met Estate agent.")
+    API.logInfo("Talking to Estate agent.")
 
     API.DoAction_NPC( 0x29, API.OFF_ACT_InteractNPC_route3, { NPCs.Estate_agent }, 50 )
     if not WaitForControl(2.5) then
@@ -1288,7 +1288,7 @@ local function HandInContract()
         end
 
         if API.DoDialog_Option("I want a new contract.") then
-            API.logInfo("Nieuw contract aangevraagd.")
+            API.logInfo("New contract requested.")
             if not WaitForControl(4) then
                 return false
             end
@@ -1304,8 +1304,8 @@ local function HandInContract()
         return false
     end
 
-    API.logError("Geen contractoptie gevonden. Script wordt gestopt.")
-    StopReason = "Geen contractoptie gevonden."
+    API.logError("No contract option found. Stopping script.")
+    StopReason = "No contract option found."
     CurrentState = STATE_STOP
     return false
 end
@@ -1313,7 +1313,7 @@ end
 local function LoadLastPreset()
     API.logInfo("Load last preset.")
     API.DoAction_Object1(0x33, API.OFF_ACT_GeneralObject_route3, {Objects.Bank}, 50)
-    API.logInfo("Wacht tot preset en inventory geladen zijn.")
+    API.logInfo("Waiting for preset and inventory to load.")
 
     if not WaitForControl(4.0) then
         return false
@@ -1331,22 +1331,22 @@ end
 local function Bank()
 
     if not IsPlayerInArea(townAreas["Home"]) then
-        API.logInfo("STATE_BANK: Niet in Home; eerst naar Home teleporteren.")
+        API.logInfo("STATE_BANK: Not at Home; teleporting to Home first.")
 
         if not TeleportHome() then
-            StopReason = "Kon niet naar Home teleporteren voor bankieren."
+            StopReason = "Could not teleport to Home for banking."
             CurrentState = STATE_STOP
             return false
         end
     end
 
     if not IsPlayerInArea(townAreas["Home"]) then
-        StopReason = "Bankactie afgebroken: speler is niet in Home."
+        StopReason = "Bank action cancelled: player is not at Home."
         CurrentState = STATE_STOP
         return false
     end
 
-    API.logInfo("STATE_BANK: Home bereikt; preset en bank verwerken.")
+    API.logInfo("STATE_BANK: Home reached; processing preset and bank.")
 
     if not LoadLastPreset() then
         return false
@@ -1355,9 +1355,9 @@ local function Bank()
     local plankBoxAmount = Functions.GetRealItemAmount("Plank box")
 
     if plankBoxAmount == 0 then
-        API.logWarn("Geen plank box gevonden.")
+        API.logWarn("No Plank box found.")
     else
-        API.logInfo("Plank box gevonden: " .. plankBoxAmount)
+        API.logInfo("Plank box found: " .. plankBoxAmount)
 
         API.DoAction_Object1(0x33, API.OFF_ACT_GeneralObject_route1, {Objects.Bank}, 50)
 
@@ -1370,7 +1370,7 @@ local function Bank()
             end
 
             if API.BankOpen2() then
-                API.logInfo("Bank geopend.")
+                API.logInfo("Bank opened.")
                 break
             end
 
@@ -1396,16 +1396,16 @@ local function Bank()
 
         if not API.BankOpen2() then
 
-            API.logError("Bank kon niet worden geopend.")
+            API.logError("Bank could not be opened.")
 
-            StopReason = "Bank kon niet worden geopend."
+            StopReason = "Bank could not be opened."
             CurrentState = STATE_STOP
 
             return false
 
         end
 
-        API.logInfo("Plank box vullen.")
+        API.logInfo("Filling Plank box.")
 
         API.DoAction_Bank_Inv(Items.misc.plank_box, 8, API.OFF_ACT_GeneralInterface_route2)
 
@@ -1413,7 +1413,7 @@ local function Bank()
             return false
         end
 
-        API.logInfo("Bank sluiten.")
+        API.logInfo("Closing bank.")
 
         API.KeyboardPress2(	0x1B, 60, 100)
 
@@ -1423,15 +1423,15 @@ local function Bank()
     end
 
     if CurrentContract.missingBuildMaterials then
-        API.logInfo("Controleer materialen na preset laden.")
+        API.logInfo("Checking materials after loading preset.")
 
         if not Functions.HasRequiredMaterials(CurrentContract.missingBuildMaterials) then
-            StopReason = "Preset bevat nog onvoldoende materialen voor de geselecteerde bouwopties."
+            StopReason = "Preset still contains insufficient materials for the selected build options."
             CurrentState = STATE_STOP
             return false
         end
 
-        API.logInfo("Presetmaterialen zijn voldoende; contract hervatten.")
+        API.logInfo("Preset materials are sufficient; resuming contract.")
         CurrentContract.missingBuildMaterials = nil
     end
 
@@ -1448,27 +1448,27 @@ function M.Tick()
         return
     end
     if CurrentState == STATE_START then
-        API.logInfo("Script gestart.")
+        API.logInfo("Script started.")
         CurrentState = STATE_CHECK_CONTRACT
 
     elseif CurrentState == STATE_CHECK_CONTRACT then
         if Inventory:GetItemAmount(Items.misc.contract) > 0 then
-            API.logInfo("Contract gevonden.")
+            API.logInfo("Contract found.")
             CurrentState = STATE_OPEN_INTERFACE
         else
-            API.logError("Geen contract.")
+            API.logError("No contract.")
             CurrentState = STATE_STOP
         end
 
     elseif CurrentState == STATE_OPEN_INTERFACE then
 
         if not API.InventoryInterfaceCheckvarbit() then
-            StopReason = "Inventory is niet geopend. Open de inventory voordat je het script start."
+            StopReason = "Inventory is not open. Open the inventory before starting the script."
             CurrentState = STATE_STOP
 
         elseif CheckContract() then
 
-            API.logInfo("Interface geopend.")
+            API.logInfo("Interface opened.")
             CurrentState = STATE_SYNC_CONTRACT
 
         else
@@ -1476,11 +1476,11 @@ function M.Tick()
             local err = HasError()
 
             if err == "NO_CONTRACT" then
-                API.logInfo("Contract voltooid. Terug naar Home.")
+                API.logInfo("Contract complete. Returning Home.")
                 CurrentState = STATE_RETURN_HOME
 
             else
-                API.logInfo("Klik contract")
+                API.logInfo("Clicking contract.")
                 API.DoAction_Inventory1(
                     Items.misc.contract,
                     0,
@@ -1495,7 +1495,7 @@ function M.Tick()
     elseif CurrentState == STATE_SYNC_CONTRACT then
         local ok, location, npc, area = CheckContract()
         if not ok then
-            API.logError("Geen geldig contract gevonden.")
+            API.logError("No valid contract found.")
             CurrentState = STATE_STOP
             return
         end
@@ -1561,13 +1561,13 @@ function M.Tick()
         if CurrentContract.entrance then
             CurrentContract.walkTarget = GetRandomEntrancePoint(CurrentContract.entrance)
             API.logDebug(string.format(
-                "Voordeur walk target: (%d,%d)",
+                "Front door walk target: (%d,%d)",
                 CurrentContract.walkTarget.x,
                 CurrentContract.walkTarget.y
             ))
         else
             API.logDebug(string.format(
-                "Nieuw walk target: (%d,%d)",
+                "New walk target: (%d,%d)",
                 CurrentContract.walkTarget.x,
                 CurrentContract.walkTarget.y
             ))
@@ -1575,7 +1575,7 @@ function M.Tick()
 
         local completed, total = GetCompletedTasks()
 
-        API.logDebug("Taken voltooid: " .. completed .. "/" .. total)
+        API.logDebug("Tasks completed: " .. completed .. "/" .. total)
 
         if completed == total then
             CurrentState = STATE_RETURN_HOME
@@ -1586,7 +1586,7 @@ function M.Tick()
     elseif CurrentState == STATE_TRAVEL then
 
         -----------------------------------------------------------------
-        -- Niet in de juiste stad -> teleporteren
+        -- Not in the correct town -> teleport
         -----------------------------------------------------------------
         if not IsPlayerInArea(CurrentContract.townArea) then
 
@@ -1610,7 +1610,7 @@ function M.Tick()
 
                 if HandleDoor(CurrentContract.door) then
                     DoorHandled = true
-                    API.logInfo("STATE_TRAVEL: Door open; direct naar reparaties.")
+                    API.logInfo("STATE_TRAVEL: Door open; going directly to repairs.")
                     CurrentState = STATE_BUILD
                 end
 
@@ -1622,7 +1622,7 @@ function M.Tick()
             end
 
         -----------------------------------------------------------------
-        -- De speler staat binnen, of er is geen voordeur nodig.
+        -- The player is inside, or no front door is required.
         -----------------------------------------------------------------
         elseif IsPlayerInArea(CurrentContract.buildingArea) then
 
@@ -1648,11 +1648,11 @@ function M.Tick()
             end
 
         -----------------------------------------------------------------
-        -- Nog onderweg
+        -- Still travelling
         -----------------------------------------------------------------
         else
 
-            -- Nog aan het lopen? Dan niets doen.
+            -- Still walking? Do nothing.
             if API.ReadPlayerMovin() then
 
                 API.logInfo("STATE_TRAVEL: Walking...")
@@ -1661,7 +1661,7 @@ function M.Tick()
 
             else
 
-                -- Eerst eventuele deur afhandelen
+                -- Handle a possible door first.
                 API.logDebug("Door: " .. tostring(CurrentContract.door and CurrentContract.door.name) .. " | Handled: " .. tostring(DoorHandled))
 
                 if CurrentContract.door and not DoorHandled then
@@ -1700,32 +1700,32 @@ function M.Tick()
             if CurrentContract.repairPhase == "wait_repair" then
                 CurrentContract.repairDeadline = os.clock() + 20
             end
-            API.logDebug("STATE_BUILD: Wachten tot speler en animatie klaar zijn.")
+            API.logDebug("STATE_BUILD: Waiting for player movement and animation to finish.")
             WaitForControl(0.4)
         else
 
-        API.logInfo("STATE_BUILD: Zoeken naar reparaties.")
+        API.logInfo("STATE_BUILD: Searching for repairs.")
 
         local result = RepairFloor()
 
         if result == "success" then
-            API.logInfo("STATE_BUILD: Reparatie voltooid.")
+            API.logInfo("STATE_BUILD: Repair complete.")
             AwaitingCompletionUpdate = true
             CurrentContract.stairAttemptsWithoutRepair = 0
 
         elseif result == "access" then
-            API.logInfo("STATE_BUILD: Toegangsdeur geopend; opnieuw naar reparaties zoeken.")
+            API.logInfo("STATE_BUILD: Access door opened; searching for repairs again.")
 
         elseif result == "interrupted" then
-            API.logInfo("STATE_BUILD: Wachten onderbroken voor Pause/Stop.")
+            API.logInfo("STATE_BUILD: Waiting interrupted by Pause/Stop.")
 
         elseif result == "pending" then
-            -- De repair-flow wacht niet-blokkerend; Main kan Pause/Stop verwerken.
+            -- The repair flow waits without blocking; Main can process Pause/Stop.
 
     elseif result == "done" then
 
         if HasError() == "CONTRACT_COMPLETED" then
-            API.logInfo("STATE_BUILD: Contract voltooid.")
+            API.logInfo("STATE_BUILD: Contract complete.")
             ContractStats.contractsDone = ContractStats.contractsDone + 1
             AwaitingCompletionUpdate = false
             CurrentState = STATE_RETURN_HOME
@@ -1741,29 +1741,29 @@ function M.Tick()
             completed, total = GetCompletedTasks()
         end
 
-        API.logInfo("STATE_BUILD: Geen reparaties meer gevonden.")
-        API.logInfo("STATE_BUILD: Taken voltooid: " .. completed .. "/" .. total)
+        API.logInfo("STATE_BUILD: No more repairs found.")
+        API.logInfo("STATE_BUILD: Tasks completed: " .. completed .. "/" .. total)
 
         if completed == total then
 
-            API.logInfo("STATE_BUILD: Contract voltooid.")
+            API.logInfo("STATE_BUILD: Contract complete.")
             CurrentState = STATE_RETURN_HOME
 
         else
 
         local player = API.PlayerCoord()
         if OpenAccessDoorBeforeRepair({ Floor = player.z, Distance = math.huge }, true) then
-            API.logInfo("STATE_BUILD: Trap-toegangsdeur geopend; opnieuw naar reparaties zoeken.")
+            API.logInfo("STATE_BUILD: Stair access door opened; searching for repairs again.")
             return
         end
 
         if CurrentContract.stairAttemptsWithoutRepair >= 2 then
-            StopReason = "Na twee trapwissels zijn geen reparaties gevonden."
+            StopReason = "No repairs found after two floor changes."
             CurrentState = STATE_STOP
             return
         end
 
-        API.logInfo("STATE_BUILD: Trap gebruiken.")
+        API.logInfo("STATE_BUILD: Using stairs.")
 
         local ok = HandleStairs()
 
@@ -1771,14 +1771,14 @@ function M.Tick()
             return
         end
 
-        API.logDebug("HandleStairs resultaat: " .. tostring(ok))
+        API.logDebug("HandleStairs result: " .. tostring(ok))
 
         if ok then
             CurrentContract.stairAttemptsWithoutRepair = CurrentContract.stairAttemptsWithoutRepair + 1
-            API.logDebug("Trapwissels zonder reparatie: " .. CurrentContract.stairAttemptsWithoutRepair .. "/2")
-            API.logInfo("STATE_BUILD: Nieuwe verdieping bereikt.")
+            API.logDebug("Floor changes without repairs: " .. CurrentContract.stairAttemptsWithoutRepair .. "/2")
+            API.logInfo("STATE_BUILD: New floor reached.")
         else
-            StopReason = "Trap kon niet gebruikt worden."
+            StopReason = "Could not use stairs."
             CurrentState = STATE_STOP
         end
 
@@ -1788,13 +1788,13 @@ function M.Tick()
 
         elseif result == "bank" then
             CurrentState = STATE_BANK
-            API.logDebug("STATE verandert naar BANK")
+            API.logDebug("STATE changed to BANK")
 
         elseif result == "stop" then
             CurrentState = STATE_STOP
 
         else
-            StopReason = "Onbekende build-uitkomst: " .. tostring(result)
+            StopReason = "Unknown build result: " .. tostring(result)
             CurrentState = STATE_STOP
         end
 
@@ -1808,7 +1808,7 @@ function M.Tick()
 
     if IsPlayerInArea(townAreas["Home"]) then
 
-        API.logInfo("Terug in Home.")
+        API.logInfo("Back at Home.")
         CurrentState = STATE_HANDIN
 
     else
@@ -1819,7 +1819,7 @@ function M.Tick()
         elseif teleported then
             CurrentState = STATE_HANDIN
         else
-            StopReason = "Kon niet naar Home teleporteren."
+            StopReason = "Could not teleport to Home."
             CurrentState = STATE_STOP
         end
 
