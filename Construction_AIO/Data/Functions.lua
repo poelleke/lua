@@ -165,7 +165,7 @@ local function TrySurgeTo(destination, label)
         return true
     end
 
-    API.logDebug("Travel ability: " .. label .. " kon niet gebruikt worden.")
+    API.logDebug("Travel ability: " .. label .. " could not be used.")
     return false
 
 end
@@ -183,7 +183,7 @@ local function TryDiveTo(destination)
 
     if API.DoAction_Dive_Tile(abilityTarget) then
         API.logInfo(string.format(
-            "Travel ability: Dive naar (%d,%d).",
+            "Travel ability: Dive to (%d,%d).",
             abilityTarget.x,
             abilityTarget.y
         ))
@@ -191,7 +191,7 @@ local function TryDiveTo(destination)
         return true
     end
 
-    API.logDebug("Travel ability: Dive kon niet gebruikt worden.")
+    API.logDebug("Travel ability: Dive could not be used.")
     return false
 
 end
@@ -224,7 +224,7 @@ function Functions.TryTravelMovementAbility(target)
     end
 
     if not firstSurgeUsed and not diveUsed and not secondSurgeUsed then
-        API.logDebug("Travel abilities niet beschikbaar of niet geaccepteerd.")
+        API.logDebug("Travel abilities not available or not accepted.")
         return false
     end
 
@@ -277,15 +277,15 @@ function Functions.HandleBankPin(config)
     if not API.GetInterfaceOpenBySize(759) then
         return true
     end
-    API.logInfo("Bank PIN gedetecteerd.")
+    API.logInfo("Bank PIN detected.")
 
     if not config.UseBankPin then
-        API.logError("Bank PIN gedetecteerd, maar 'Use Bank PIN' staat uit.")
+        API.logError("Bank PIN detected, but 'Use Bank PIN' is disabled.")
         return false
     end
 
     if config.BankPin == "" then
-        API.logError("Bank PIN gedetecteerd, maar er is geen Bank PIN ingesteld.")
+        API.logError("Bank PIN detected, but no Bank PIN has been set.")
         return false
     end
 
@@ -294,14 +294,14 @@ function Functions.HandleBankPin(config)
     end
 
     API.DoBankPin(config.BankPin)
-    --API.logDebug("PIN verzonden:", config.BankPin)
+    --API.logDebug("PIN send:", config.BankPin)
 
     local timeout = os.clock() + 5
 
     while os.clock() < timeout do
 
         if not API.GetInterfaceOpenBySize(759) then
-            API.logDebug("Bank PIN ingevoerd.")
+            API.logDebug("Bank PIN entered.")
             return true
         end
 
@@ -420,7 +420,7 @@ function Functions.HasRequiredMaterials(Materials)
         end
 
         API.logDebug(string.format(
-            "%s | Nodig: %d | Aanwezig: %d",
+            "%s | Necessary: %d | Present: %d",
             Material.Name, Material.Needed, Have
         ))
 
@@ -440,13 +440,13 @@ function Functions.GetFirstBuildableOption(Builds)
 
     for Build = #Builds, 1, -1 do
 
-        API.logDebug("Controle build:", Build)
+        API.logDebug("Verification build:", Build)
 
         local widgets = API.ScanForInterfaceTest2Get(false, Builds[Build].Path)
         local info = widgets and widgets[1]
 
         if not info or not info.textids then
-            API.logDebug("  -> Materialen niet gevonden.")
+            API.logDebug("  -> Materials not found.")
         else
             local text = info.textids:gsub("<br>", "\n")
             local Materials = Functions.ParseRequiredMaterials(text)
@@ -455,13 +455,13 @@ function Functions.GetFirstBuildableOption(Builds)
                 preferredMaterials = Materials
             end
 
-            API.logDebug("  -> Materialen gevonden:", #Materials)
+            API.logDebug("  -> Materials found:", #Materials)
 
             if Functions.HasRequiredMaterials(Materials) then
                 API.logDebug("  -> Deze build is mogelijk:", Build)
                 return Build, Info, Materials
             else
-                API.logDebug("  -> Onvoldoende materialen.")
+                API.logDebug("  -> Insufficient materials.")
             end
         end
 
@@ -488,15 +488,15 @@ function Functions.HandleBuildInterface()
     API.logDebug("=== HandleBuildInterface ===")
     local Build, Widget, Materials = Functions.GetFirstBuildableOption(Data.Interfaces.Builds)
 
-    API.logDebug("Build gevonden:", Build)
+    API.logDebug("Build found:", Build)
 
     if Materials then
-        API.logInfo("Benodigde materialen:")
+        API.logInfo("Required materials:")
         for _, material in ipairs(Materials) do
             API.logInfo(" - " .. material.Name .. ": " .. material.Needed)
         end
     else
-        API.logDebug("Geen materialen teruggekregen.")
+        API.logDebug("No materials received back.")
     end
 
     if not Build then
@@ -522,7 +522,7 @@ end
 function Functions.Stop(moduleName, reason, context)
 
     API.logError("===================================")
-    API.logError("Construction bot gestopt.")
+    API.logError("Construction bot stopped.")
     API.logError("===================================")
     API.logError("Module : " .. tostring(moduleName))
 
@@ -542,14 +542,14 @@ function Functions.Stop(moduleName, reason, context)
 
         local target = context.repairTarget
         if target then
-            API.logError("Doelobject: " .. tostring(target.name)
+            API.logError("Target object: " .. tostring(target.name)
                 .. " | ID: " .. tostring(target.id))
             API.logError("Objectlocatie: " .. tostring(target.x)
                 .. ", " .. tostring(target.y)
                 .. ", floor " .. tostring(target.floor))
-            API.logError(string.format("Afstand bij selectie: %.2f", target.distance))
+            API.logError(string.format("Distance at selection: %.2f", target.distance))
         elseif context.showRepairTarget then
-            API.logError("Doelobject: geen")
+            API.logError("Target object: none")
         end
     end
 
