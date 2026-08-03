@@ -9,7 +9,7 @@ local Data = require("Data.Data")
 --========================================================================--
 -- Variables
 --========================================================================--
-local Version = "1.0"
+local Version = "1.0.1"
 ConstructionGUI.open = true
 local startRequested = false
 local exitRequested = false
