@@ -13,12 +13,98 @@ local Data = require("Data.Data")
 local Functions = {}
 local pauseRequested = false
 local stopRequested = false
+local sleepStateFailCount = 0
 
 local SURGE_ID = 14233
 local DIVE_ID = 23714
 local TRAVEL_ABILITY_MIN_DISTANCE = 15
 local TRAVEL_ABILITY_STEP = 9
 local TRAVEL_ABILITY_DELAY = 650
+
+local function SleepUntilWithoutChecks(conditionFunc, timeout, message, checkLoopy, ...)
+
+    local startTime = os.time()
+
+    while not conditionFunc(...) do
+        API.DoRandomEvents()
+
+        if os.difftime(os.time(), startTime) >= timeout then
+            print("Stopped waiting for " .. message .. " after " .. timeout .. " seconds.")
+            return false
+        end
+
+        if checkLoopy and not API.Read_LoopyLoop() then
+            print("Script exited - breaking sleep.")
+            return false
+        end
+
+        API.RandomSleep2(50, 0, 0)
+    end
+
+    print("Sleep condition met for " .. message)
+    return true
+
+end
+
+local function HasValidGameState()
+
+    if API.GetGameState2() ~= 3 and sleepStateFailCount > 5 then
+        print("Not logged in after repeated checks.")
+        API.Write_LoopyLoop(false)
+        return false
+    elseif API.GetGameState2() ~= 3 then
+        SleepUntilWithoutChecks(function()
+            return API.GetGameState2() == 3
+        end, 5, "state change to 3", true)
+        print("Not logged in " .. tostring(sleepStateFailCount))
+        sleepStateFailCount = sleepStateFailCount + 1
+    end
+
+    if not API.Read_LoopyLoop() then
+        print("LoopyLoop is false")
+        return false
+    end
+
+    return true
+
+end
+
+-- Sleeps until a condition succeeds, while preserving the existing Plank
+-- module checks for random events, script exit, and game state.
+---@param conditionFunc function
+---@param timeout number
+---@param message string
+---@param ... any
+---@return boolean
+function Functions.SleepUntil(conditionFunc, timeout, message, ...)
+
+    local startTime = os.time()
+
+    while not conditionFunc(...) do
+        API.DoRandomEvents()
+
+        if os.difftime(os.time(), startTime) >= timeout then
+            print("Stopped waiting for " .. message .. " after " .. timeout .. " seconds.")
+            return false
+        end
+
+        if not API.Read_LoopyLoop() then
+            print("Script exited - breaking sleep.")
+            return false
+        end
+
+        if not HasValidGameState() then
+            print("State checks failed - breaking sleep.")
+            return false
+        end
+
+        API.RandomSleep2(50, 0, 0)
+    end
+
+    print("Sleep condition met for " .. message)
+    return true
+
+end
 
 local function IsAbilityReady(abilityId)
 
