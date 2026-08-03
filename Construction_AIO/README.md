@@ -31,7 +31,12 @@
    ├── Config.lua
    ├── ConstructionGUI.lua
    ├── Data/
+   |     ├── Data.lua
+   |     └── Functions.lua
    └── Modules/
+         ├── Contracts.lua
+         ├── Furniture.lua
+         └── Planks.lua
    ```
 ---
 
