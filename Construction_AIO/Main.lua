@@ -48,7 +48,7 @@ while API.Read_LoopyLoop() do
         else
 
             local activity = GUI.GetActivity()
-            API.logInfo("Geselecteerde activiteit: " .. tostring(activity))
+            API.logInfo("Selected activity: " .. tostring(activity))
 
             if activity == "Construction Contracts" then
 
@@ -118,7 +118,7 @@ while API.Read_LoopyLoop() do
             currentModule.Tick()
         end
 
-        -- Ook opruimen wanneer Start, Resume of Tick de module stopte.
+        -- Also clean up when Start, Resume, or Tick stopped the module.
         if not currentModule.IsRunning() then
             currentModule = nil
             GUI.SetStatus("Not Running")
