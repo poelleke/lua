@@ -315,6 +315,24 @@ Data.REPAIR_PRIORITIES = {
     }
 }
 
+-- Exterior repair hotspots that require the front door to be opened after a
+-- Master constructor teleport. Add future exceptions here without changing
+-- the contract state machine.
+Data.EXTERIOR_REPAIR_RULES = {
+    ["Ned"] = {
+        hotspot = "Bench space",
+        floor = 0
+    },
+    ["Wise old man"] = {
+        hotspot = "Bench space",
+        floor = 0
+    },
+    ["Aggie"] = {
+        hotspot = "Bench space",
+        floor = 0
+    }
+}
+
 --========================================================================--
 -- Interior room routes for contract buildings
 --========================================================================--
@@ -477,6 +495,7 @@ Data.Interfaces = {
     Location = { {736,0,-1,0}, {736,2,-1,0}, {736,3,-1,0}, {736,14,-1,0} },
     NPC      = { {736,0,-1,0}, {736,2,-1,0}, {736,3,-1,0}, {736,4,-1,0} },
     Build    = { {1306,0,-1,0}, {1306,53,-1,0}, {1306,53,14,0} },
+    MASTER_CONSTRUCTOR_MENU = { { 720, 2, -1, 0 }, { 720, 17, -1, 0 }, { 720, 17, 14, 0 } },
     Builds   = {
         [1] = { Path = {{1306,0,-1,0},{1306,51,-1,0},{1306,52,-1,0},{1306,1,-1,0},{1306,5,-1,0},{1306,5,3,0}} },
         [2] = { Path = {{1306,0,-1,0},{1306,51,-1,0},{1306,52,-1,0},{1306,8,-1,0},{1306,12,-1,0},{1306,12,3,0}} },
