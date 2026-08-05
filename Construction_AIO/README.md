@@ -73,13 +73,15 @@ During a run, the general settings are intentionally hidden so that an active co
 ### Contract loop explained
 
 1. **Read contract** — The script opens the Construction contract in your inventory and reads the target town, NPC, and number of repairs still required.
-2. **Travel to town** — It uses the appropriate lodestone when the player is outside the target town. When enabled, Surge/Dive may be used only to speed up a longer route.
+2. **Travel to town** — It uses the appropriate lodestone or when foud the **Master constructor outfit** when the player is outside the target town. When enabled, Surge/Dive may be used only to speed up a longer route.
 3. **Enter the building** — The script walks to the configured entrance, checks the front door, and opens it when necessary. Inside, it also handles known internal doors before a repair or before using stairs, so a closed door cannot block the route to another floor.
 4. **Find a repair hotspot** — It searches the current floor for the nearest valid `... space` repair object and interacts with it.
 5. **Choose a build** — Once the Build Furniture interface is open, every available build option is read. The script selects the best option for which every required material is available.
 6. **Missing materials** — If no build option is possible, the script uses House Teleport to return to Home/Rimmington. It loads the last bank preset, fills a carried Plank box when applicable, and checks the materials again before travelling back.
 7. **Repeat repairs** — After each completed repair, the script looks for the next repair on the same floor. If none is found, it checks internal doors first and then changes floor when needed.
 8. **Finish the contract** — Once all repairs are complete, the script returns Home/Rimmington, speaks to the Estate agent, requests a new contract, prepares the preset, and starts the next contract loop.
+
+For Master construction outfit. Make sure that you equipment tab is visible and the construction contract tab and put the hat on de action bar!
 
 ### Material checks
 
