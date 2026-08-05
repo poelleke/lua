@@ -57,6 +57,10 @@ local CurrentContract = {
     walkTargetAttempts = 0,
     walkTargetLastAttemptAt = nil,
     missingBuildMaterials = nil,
+    exteriorRepairRule = nil,
+    exteriorRepairPending = false,
+    masterTeleportExteriorCheckPending = false,
+    masterTeleportExteriorCheckAt = nil,
 }
 
 ----------------------------------------------------
@@ -75,6 +79,7 @@ local DOORS          = Data.DOORS
 local ACCESS_DOORS   = Data.ACCESS_DOORS
 local ACCESS_ROUTES  = Data.ACCESS_ROUTES
 local REPAIR_PRIORITIES = Data.REPAIR_PRIORITIES
+local EXTERIOR_REPAIR_RULES = Data.EXTERIOR_REPAIR_RULES
 local STAIRS         = Data.STAIRS
 local ENTRANCES      = Data.ENTRANCES
 
@@ -342,7 +347,7 @@ local function WalkToArea(area, allowTravelAbility, ignoreAreaReached)
 
     local pos = API.PlayerCoord()
 
-    API.logDebug(string.format( "WalkToArea: From (%d,%d) to (%d,%d)", pos.x, pos.y, CurrentContract.walkTarget.x, CurrentContract.walkTarget.y ))
+    --API.logDebug(string.format( "WalkToArea: From (%d,%d) to (%d,%d)", pos.x, pos.y, CurrentContract.walkTarget.x, CurrentContract.walkTarget.y ))
 
     local dx = CurrentContract.walkTarget.x - pos.x
     local dy = CurrentContract.walkTarget.y - pos.y
@@ -350,7 +355,7 @@ local function WalkToArea(area, allowTravelAbility, ignoreAreaReached)
     local distance = math.sqrt(dx * dx + dy * dy)
     local step = math.random(25, 30)
 
-    if distance > step then
+    --[[if distance > step then
 
         local nx = dx / distance
         local ny = dy / distance
@@ -367,6 +372,48 @@ local function WalkToArea(area, allowTravelAbility, ignoreAreaReached)
         end
 
         WalkToPoint(walkX, walkY, pos.z )
+
+    else]]
+    
+    if distance > step then
+
+        local nx = dx / distance
+        local ny = dy / distance
+
+        -- Eerst het normale tussenpunt richting het doel berekenen
+        local walkX = pos.x + nx * step
+        local walkY = pos.y + ny * step
+
+        -- Willekeurige afwijking links/rechts van de rechte route
+        local offset = math.random(-5, 5)
+
+        -- Vector loodrecht op de looprichting
+        local px = -ny
+        local py = nx
+
+        walkX = math.floor(walkX + px * offset)
+        walkY = math.floor(walkY + py * offset)
+
+        API.logDebug(string.format(
+            "WalkToArea: Distance %.1f | Step %d | Offset %d | Midpoint (%d,%d)",
+            distance,
+            step,
+            offset,
+            walkX,
+            walkY
+        ))
+
+        if allowTravelAbility
+            and Config.ContractsUseTravelAbilities ~= false
+            and Functions.TryTravelMovementAbility({
+                x = walkX,
+                y = walkY,
+                z = pos.z
+            }) then
+            return false
+        end
+
+        WalkToPoint(walkX, walkY, pos.z)
 
     else
 
@@ -503,9 +550,229 @@ local function WaitForTeleport(area)
 
 end
 
+local MASTER_CONSTRUCTOR_MENU = Data.Interfaces.MASTER_CONSTRUCTOR_MENU
+
+local function HasFullMasterConstructorOutfit()
+
+    return API.EquipSlotEq1(0, 51017)
+       and API.EquipSlotEq1(4, 51018)
+       and API.EquipSlotEq1(7, 51020)
+       and API.EquipSlotEq1(6, 51019)
+       and API.EquipSlotEq1(8, 51021)
+
+end
+
+local function IsMasterConstructorMenuOpen()
+
+    local result = API.ScanForInterfaceTest2Get(
+        false,
+        MASTER_CONSTRUCTOR_MENU
+    )
+
+    if not result or #result == 0 then
+        return false
+    end
+
+    local text = tostring(result[1].textids or "")
+
+    return text:find("Select an option", 1, true) ~= nil
+
+end
+
+local function WaitForMasterConstructorMenu(seconds)
+
+    local deadline = os.clock() + seconds
+
+    while os.clock() < deadline do
+        if IsMasterConstructorMenuOpen() then
+            return true
+        end
+
+        if Functions.HasPendingRequest() then
+            return false
+        end
+
+        API.RandomSleep2(50, 25, 25)
+    end
+
+    return IsMasterConstructorMenuOpen()
+
+end
+
+local function WaitForMasterConstructorMenuToClose(seconds)
+
+    local deadline = os.clock() + seconds
+
+    while os.clock() < deadline do
+        if not IsMasterConstructorMenuOpen() then
+            return true
+        end
+
+        if Functions.HasPendingRequest() then
+            return false
+        end
+
+        API.RandomSleep2(50, 25, 25)
+    end
+
+    return not IsMasterConstructorMenuOpen()
+
+end
+
+local function OpenMasterConstructorTeleportMenu()
+
+    if not HasFullMasterConstructorOutfit() then
+        API.logDebug("Full Master constructor's outfit is not equipped.")
+        return false
+    end
+
+    local ability = API.GetABs_name1("Master constructor's hat")
+
+    if not ability then
+        API.logDebug("Master constructor's hat is not available on the ability bar.")
+        return false
+    end
+
+    API.logInfo("Opening Master constructor teleport menu.")
+
+    local activated = API.DoAction_Ability_Direct(
+        ability,
+        1,
+        API.OFF_ACT_GeneralInterface_route
+    )
+
+    if activated == false then
+        API.logWarn("Master constructor's hat ability could not be activated.")
+        return false
+    end
+
+    if not WaitForMasterConstructorMenu(3) then
+        API.logWarn("Master constructor teleport menu did not open.")
+        return false
+    end
+
+    return true
+
+end
+
+local function TryMasterConstructorContractTeleport(area)
+
+    if not area then
+        API.logWarn("No building area available for the contract teleport.")
+        return false
+    end
+
+    if not OpenMasterConstructorTeleportMenu() then
+        return false
+    end
+
+    API.logInfo("Selecting Master constructor teleport: Construction contract.")
+
+    -- Option 2: Construction contract.
+    API.KeyboardPress2(0x32, 60, 100)
+
+    if not WaitForMasterConstructorMenuToClose(2) then
+        API.logWarn("Construction contract option was not processed.")
+        return false
+    end
+
+    return WaitForTeleport(area)
+
+end
+
+local function TryMasterConstructorEstateAgentTeleport(area)
+
+    if not area then
+        API.logWarn("No Home area available for the estate agent teleport.")
+        return false
+    end
+
+    if not OpenMasterConstructorTeleportMenu() then
+        return false
+    end
+
+    API.logInfo("Selecting Master constructor teleport: Estate agents.")
+
+    -- Option 4: Estate agents.
+    API.KeyboardPress2(0x34, 60, 100)
+
+    -- Estate agents replaces the choices in the same menu instead of
+    -- closing it. Wait for the destination choices before selecting one.
+    if not WaitForControl(0.8) then
+        return false
+    end
+
+    if not WaitForMasterConstructorMenu(3) then
+        API.logWarn("Estate agent destination menu did not open.")
+        return false
+    end
+
+    API.logInfo("Selecting estate agent: Rimmington.")
+
+    -- Option 1: Rimmington estate agent.
+    API.KeyboardPress2(0x31, 60, 100)
+
+    if not WaitForMasterConstructorMenuToClose(2) then
+        API.logWarn("Rimmington estate agent option was not processed.")
+        return false
+    end
+
+    return WaitForTeleport(area)
+
+end
+
+local function IsPointInsideBuildingArea(x, y, area)
+
+    return area
+        and x >= area.x1
+        and x <= area.x2
+        and y >= area.y1
+        and y <= area.y2
+
+end
+
+local function FindExteriorRepairObject()
+
+    local rule = CurrentContract.exteriorRepairRule
+    if not rule or not CurrentContract.buildingArea then
+        return nil
+    end
+
+    local objects = API.FindObject_string({ rule.hotspot }, 30)
+    if not objects then
+        return nil
+    end
+
+    for _, obj in ipairs(objects) do
+        local x = math.floor(obj.TileX / 512)
+        local y = math.floor(obj.TileY / 512)
+
+        if obj.Name == rule.hotspot
+        and obj.Floor == rule.floor
+        and not IsPointInsideBuildingArea(x, y, CurrentContract.buildingArea) then
+            return obj
+        end
+    end
+
+    return nil
+
+end
+
 local function TeleportToTown(location)
 
     API.logInfo("TeleportToTown: "..location)
+
+    -- The outfit teleport goes directly to the active contract's build area.
+    if TryMasterConstructorContractTeleport(CurrentContract.buildingArea) then
+        -- Wait briefly for nearby exterior repair hotspots to load before
+        -- deciding whether the front door can be skipped.
+        DoorHandled = true
+        CurrentContract.masterTeleportExteriorCheckPending = true
+        CurrentContract.masterTeleportExteriorCheckAt = os.clock() + 0.8
+        return true
+    end
+
+    API.logInfo("Falling back to lodestone teleport.")
 
     if not OpenLodestoneInterface() then
         return false
@@ -1136,7 +1403,7 @@ local function RepairFloor()
     if CurrentContract.repairPhase == "wait_for_stop" then
         if not API.ReadPlayerMovin() then
             CurrentContract.repairPhase = "wait_interface_delay"
-            CurrentContract.repairNextAt = now + 0.8
+        CurrentContract.repairNextAt = now + 0.8
         elseif now > CurrentContract.repairDeadline then
             StopReason = "Build object could not be reached."
             CurrentContract.repairPhase = nil
@@ -1148,7 +1415,7 @@ local function RepairFloor()
     if CurrentContract.repairPhase == "wait_interface_delay" then
         if now >= CurrentContract.repairNextAt then
             CurrentContract.repairPhase = "wait_interface"
-            CurrentContract.repairDeadline = now + 10
+            CurrentContract.repairDeadline = now + 5-- was 10
         end
         return "pending"
     end
@@ -1189,6 +1456,13 @@ local function RepairFloor()
     if CurrentContract.repairPhase == "wait_repair" then
         if now >= CurrentContract.repairNextAt and not RepairObjectStillExists() then
             API.logInfo("Repair finished.")
+
+            if CurrentContract.repairTarget
+            and CurrentContract.repairTarget.isExteriorPriority then
+                CurrentContract.exteriorRepairPending = false
+                API.logInfo("Exterior Bench space complete; continuing the normal contract route.")
+            end
+
             CurrentContract.repairTarget = nil
             CurrentContract.repairPhase = nil
             CurrentContract.repairHardDeadline = nil
@@ -1206,7 +1480,12 @@ local function RepairFloor()
         return "pending"
     end
 
-    local obj = FindPriorityRepairObject() or FindNextRouteRepairObject()
+    local exteriorPriority = nil
+    if CurrentContract.exteriorRepairPending then
+        exteriorPriority = FindExteriorRepairObject()
+    end
+
+    local obj = exteriorPriority or FindPriorityRepairObject() or FindNextRouteRepairObject()
 
     if not obj then
         API.logInfo("No repair object found on this floor.")
@@ -1224,7 +1503,8 @@ local function RepairFloor()
         distance = obj.Distance,
         floor = obj.Floor,
         x = math.floor(obj.TileX / 512),
-        y = math.floor(obj.TileY / 512)
+        y = math.floor(obj.TileY / 512),
+        isExteriorPriority = exteriorPriority ~= nil
     }
 
     API.logDebug(string.format(
@@ -1249,7 +1529,13 @@ end
 
 local function TeleportHome()
 
-    API.logInfo("Using House Teleport.")
+    local homeArea = townAreas["Home"]
+
+    if TryMasterConstructorEstateAgentTeleport(homeArea) then
+        return true
+    end
+
+    API.logInfo("Falling back to House Teleport.")
 
     API.DoAction_Ability_Direct(
         API.GetABs_name1("House Teleport"),
@@ -1257,7 +1543,7 @@ local function TeleportHome()
         API.OFF_ACT_GeneralInterface_route
     )
 
-    return WaitForTeleport(townAreas["Home"])
+    return WaitForTeleport(homeArea)
 
 end
 
@@ -1524,6 +1810,10 @@ function M.Tick()
         CurrentContract.walkTargetAttempts = 0
         CurrentContract.walkTargetLastAttemptAt = nil
         CurrentContract.missingBuildMaterials = nil
+        CurrentContract.exteriorRepairRule = EXTERIOR_REPAIR_RULES[npc]
+        CurrentContract.exteriorRepairPending = false
+        CurrentContract.masterTeleportExteriorCheckPending = false
+        CurrentContract.masterTeleportExteriorCheckAt = nil
 
         if npc == "Father Aereck" then
             CurrentContract.door = DOORS.FatherAereck
@@ -1595,6 +1885,31 @@ function M.Tick()
             TeleportToTown(CurrentContract.location)
 
             WaitForControl(0.5)
+
+        elseif CurrentContract.masterTeleportExteriorCheckPending then
+
+            if os.clock() < CurrentContract.masterTeleportExteriorCheckAt then
+                API.logDebug("STATE_TRAVEL: Waiting for exterior repair hotspots to load.")
+                WaitForControl(0.2)
+                return
+            end
+
+            CurrentContract.masterTeleportExteriorCheckPending = false
+            CurrentContract.masterTeleportExteriorCheckAt = nil
+
+            local exteriorRepair = FindExteriorRepairObject()
+            if exteriorRepair then
+                CurrentContract.exteriorRepairPending = true
+                DoorHandled = false
+                API.logInfo(
+                    "STATE_TRAVEL: Exterior Bench space found after outfit teleport; opening front door first."
+                )
+            else
+                DoorHandled = true
+                API.logDebug("STATE_TRAVEL: No exterior priority repair found; front door skipped after outfit teleport.")
+            end
+
+            return
 
         elseif CurrentContract.entrance
         and CurrentContract.door
