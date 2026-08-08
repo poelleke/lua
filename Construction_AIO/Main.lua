@@ -11,9 +11,10 @@ local Config = require("Config")
 Config.Load()
 
 local Functions = require("Data.Functions")
-local Planks = require("Modules.Planks")
+local ConstructionMaterials = require("Modules.ConstructionMaterials")
 local Contracts = require("Modules.Contracts")
 local Furniture = require("Modules.Furniture")
+local FortConstruction = require("Modules.FortConstruction")
 
 local currentModule = nil
 
@@ -24,6 +25,7 @@ DrawImGui(function()
     GUI.draw()
 end)
 
+    API.TurnOffMrHasselhoff(false)
     API.SetDrawLogs(true)
     API.SetDrawTrackedSkills(true)
     API.ClearLog()
@@ -54,13 +56,17 @@ while API.Read_LoopyLoop() do
 
                 currentModule = Contracts
 
-            elseif activity == "Make Planks" then
+            elseif activity == "Construction Materials" then
 
-                currentModule = Planks
+                currentModule = ConstructionMaterials
 
             elseif activity == "Build Furniture" then
 
                 currentModule = Furniture
+
+            elseif activity == "Fort Forinthry Construction" then
+
+                currentModule = FortConstruction
 
             end
 
