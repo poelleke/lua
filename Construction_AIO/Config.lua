@@ -13,6 +13,11 @@ Config.ContractsUseTravelAbilities = true
 
 Config.PlankType = 0
 Config.LoadLastPreset = true
+Config.ConstructionMaterialType = 0
+Config.RefinedPlankType = 0
+Config.FrameType = 0
+Config.PlanksAtFortForinthry = false
+Config.FortForinthryBuildFromScratch = false
 
 Config.FurnitureSearch = ""
 Config.FurnitureUseCustomSearch = false
