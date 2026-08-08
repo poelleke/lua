@@ -8,6 +8,7 @@
 -- Sources:
 -- https://runescape.wiki/
 -- https://mejrs.github.io/
+-- https://patriq.github.io/explv-mej/?m=-1&z=4&p=0&x=3301&y=3537
 --
 --=========================================================================--
 
@@ -35,6 +36,40 @@ Materials = {
     [9]  = { Name = "Elder",    Log = 29556,  Plank = 54870, },
     [10] = { Name = "Eternal",  Log = 58250,  Plank = 63190, },
 },
+
+    ------------------------------------------------------------------------
+    -- Fort Forinthry sawmill: four planks become one refined plank.
+    ------------------------------------------------------------------------
+    RefinedMaterials = {
+        [0] = { Name = "Refined planks",          Input = 960,   Output = 54444, Required = 4 },
+        [1] = { Name = "Refined Oak planks",      Input = 8778,  Output = 54446, Required = 4 },
+        [2] = { Name = "Refined Willow planks",   Input = 8784,  Output = 54836, Required = 4 },
+        [3] = { Name = "Refined Teak planks",     Input = 8780,  Output = 54448, Required = 4 },
+        [4] = { Name = "Refined Maple planks",    Input = 54860, Output = 54838, Required = 4 },
+        [5] = { Name = "Refined Acadia planks",   Input = 54864, Output = 54840, Required = 4 },
+        [6] = { Name = "Refined Mahogany planks", Input = 8782,  Output = 54450, Required = 4 },
+        [7] = { Name = "Refined Yew planks",      Input = 54866, Output = 54842, Required = 4 },
+        [8] = { Name = "Refined Magic planks",    Input = 54868, Output = 54844, Required = 4 },
+        [9] = { Name = "Refined Elder planks",    Input = 54870, Output = 54846, Required = 4 },
+        [10] = { Name = "Refined Eternal planks", Input = 63190, Output = 63437, Required = 4 },
+    },
+
+    ------------------------------------------------------------------------
+    -- Fort Forinthry woodworking bench: three refined planks become one frame.
+    ------------------------------------------------------------------------
+    FrameMaterials = {
+        [0] = { Name = "Wooden frame",  Input = 54444, Output = 54452, Required = 3 },
+        [1] = { Name = "Oak frame",     Input = 54446, Output = 54454, Required = 3 },
+        [2] = { Name = "Willow frame",  Input = 54836, Output = 54848, Required = 3 },
+        [3] = { Name = "Teak frame",    Input = 54448, Output = 54456, Required = 3 },
+        [4] = { Name = "Maple frame",   Input = 54838, Output = 54850, Required = 3 },
+        [5] = { Name = "Acadia frame",  Input = 54840, Output = 54852, Required = 3 },
+        [6] = { Name = "Mahogany frame",Input = 54450, Output = 54458, Required = 3 },
+        [7] = { Name = "Yew frame",     Input = 54842, Output = 54854, Required = 3 },
+        [8] = { Name = "Magic frame",   Input = 54844, Output = 54856, Required = 3 },
+        [9] = { Name = "Elder frame",   Input = 54846, Output = 54858, Required = 3 },
+        [10] = { Name = "Eternal frame",Input = 63437, Output = 63439, Required = 3 },
+    },
 
     ------------------------------------------------------------------------
     -- Nails
@@ -66,8 +101,9 @@ Materials = {
     ------------------------------------------------------------------------
     Stone = {
 
-        Limestone       = 0,
+        Limestone       = 3420,
         LimestoneBrick  = 0,
+        StoneWallSegment = 54460,
         MarbleBlock     = 0,
         MagicStone      = 0,
 
@@ -103,7 +139,8 @@ Materials = {
     },
 
     Containers = {
-        PlankBox = 895
+        PlankBox = 895,
+        PlankBoxCapacityPerType = 100
     }
 
 }
@@ -124,6 +161,13 @@ Data.Lodestones = {
 Data.Objects = {
     Bank = 115427,
     Sawmill = 139148,
+    FortBank = 125115,
+    FortSawmill = 125052,
+    FortBlueprints = 125059,
+    FortConstructionHotspot = 125060,
+    FortOptimalConstructionHotspot = 125061,
+    WoodworkingBench = 125054,
+    Stonecutter = 125053,
     FurnitureWorkbench = 139147,
     FurnitureStorage = 139146,
 
@@ -468,7 +512,73 @@ Data.TownAreas = {--x1 west, Y1 zuid, X2 oost, Y2 noord
     ["Varrock"]     = { x1 = 3137,  y1 = 3373,  x2 = 3291, y2 = 3520 },
     ["Lumbridge"]   = { x1 = 3192,  y1 = 3189,  x2 = 3254, y2 = 3269 },
     ["Home"]        = { x1 = 2934,  y1 = 3216,  x2 = 2953, y2 = 3232 },
+    ["Fort Forinthry"] = { x1 = 3276, y1 = 3532, x2 = 3360, y2 = 3572 },
     
+}
+
+Data.FortAreas = {
+    ["Workshop"]              = { x1 = 3276, y1 = 3549, x2 = 3288, y2 = 3561 },
+    ["Town Hall"]             = { x1 = 3300, y1 = 3563, x2 = 3311, y2 = 3572 },
+    ["Chapel"]                = { x1 = 3321, y1 = 3558, x2 = 3333, y2 = 3564 },
+    ["Command Centre"]        = { x1 = 3312, y1 = 3535, x2 = 3322, y2 = 3543 },
+    ["Kitchen"]               = { x1 = 3312, y1 = 3566, x2 = 3319, y2 = 3572 },
+    ["Guardhouse"]            = { x1 = 3292, y1 = 3532, x2 = 3299, y2 = 3541 },
+    ["Grove Cabin"]           = { x1 = 3337, y1 = 3541, x2 = 3360, y2 = 3563 },
+    ["Ranger's Workroom"]     = { x1 = 3287, y1 = 3532, x2 = 3291, y2 = 3540 },
+    ["Botanist's Workbench"]  = { x1 = 3294, y1 = 3563, x2 = 3299, y2 = 3572 }
+}
+
+------------------------------------------------------------------------
+-- Fort Forinthry blueprints
+-- One frame needs 3 refined planks, or 12 planks/logs.
+-- Every listed tier needs 6 Stone wall segments (24 Limestone bricks).
+------------------------------------------------------------------------
+Data.FortBlueprints = {
+    ["Workshop"] = {
+        [1] = { materialIndex = 0, frame = "Wooden frame", frameCount = 8,  refinedPlanks = 24,  planks = 96,  logs = 96,  stoneWallSegments = 6, limestoneBricks = 24 },
+        [2] = { materialIndex = 3, frame = "Teak frame",   frameCount = 20, refinedPlanks = 60,  planks = 240, logs = 240, stoneWallSegments = 6, limestoneBricks = 24 },
+        [3] = { materialIndex = 7, frame = "Yew frame",    frameCount = 48, refinedPlanks = 144, planks = 576, logs = 576, stoneWallSegments = 6, limestoneBricks = 24 }
+    },
+    ["Town Hall"] = {
+        [1] = { materialIndex = 1, frame = "Oak frame",   frameCount = 10, refinedPlanks = 30,  planks = 120, logs = 120, stoneWallSegments = 6, limestoneBricks = 24 },
+        [2] = { materialIndex = 4, frame = "Maple frame", frameCount = 22, refinedPlanks = 66,  planks = 264, logs = 264, stoneWallSegments = 6, limestoneBricks = 24 },
+        [3] = { materialIndex = 8, frame = "Magic frame", frameCount = 60, refinedPlanks = 180, planks = 720, logs = 720, stoneWallSegments = 6, limestoneBricks = 24 }
+    },
+    ["Chapel"] = {
+        [1] = { materialIndex = 1, frame = "Oak frame",    frameCount = 10, refinedPlanks = 30,  planks = 120, logs = 120, stoneWallSegments = 6, limestoneBricks = 24 },
+        [2] = { materialIndex = 5, frame = "Acadia frame", frameCount = 24, refinedPlanks = 72,  planks = 288, logs = 288, stoneWallSegments = 6, limestoneBricks = 24 },
+        [3] = { materialIndex = 9, frame = "Elder frame",  frameCount = 50, refinedPlanks = 150, planks = 600, logs = 600, stoneWallSegments = 6, limestoneBricks = 24 }
+    },
+    ["Command Centre"] = {
+        [1] = { materialIndex = 2, frame = "Willow frame", frameCount = 12, refinedPlanks = 36,  planks = 144, logs = 144, stoneWallSegments = 6, limestoneBricks = 24 },
+        [2] = { materialIndex = 7, frame = "Yew frame",    frameCount = 26, refinedPlanks = 78,  planks = 312, logs = 312, stoneWallSegments = 6, limestoneBricks = 24 },
+        [3] = { materialIndex = 9, frame = "Elder frame",  frameCount = 80, refinedPlanks = 240, planks = 960, logs = 960, stoneWallSegments = 6, limestoneBricks = 24 }
+    },
+    ["Kitchen"] = {
+        [1] = { materialIndex = 2, frame = "Willow frame", frameCount = 12, refinedPlanks = 36,  planks = 144, logs = 144, stoneWallSegments = 6, limestoneBricks = 24 },
+        [2] = { materialIndex = 5, frame = "Acadia frame", frameCount = 22, refinedPlanks = 66,  planks = 264, logs = 264, stoneWallSegments = 6, limestoneBricks = 24 },
+        [3] = { materialIndex = 8, frame = "Magic frame",  frameCount = 50, refinedPlanks = 150, planks = 600, logs = 600, stoneWallSegments = 6, limestoneBricks = 24 }
+    },
+    ["Guardhouse"] = {
+        [1] = { materialIndex = 4, frame = "Maple frame",    frameCount = 14, refinedPlanks = 42,  planks = 168, logs = 168, stoneWallSegments = 6, limestoneBricks = 24 },
+        [2] = { materialIndex = 6, frame = "Mahogany frame", frameCount = 26, refinedPlanks = 78,  planks = 312, logs = 312, stoneWallSegments = 6, limestoneBricks = 24 },
+        [3] = { materialIndex = 9, frame = "Elder frame",    frameCount = 70, refinedPlanks = 210, planks = 840, logs = 840, stoneWallSegments = 6, limestoneBricks = 24 }
+    },
+    ["Grove Cabin"] = {
+        [1] = { materialIndex = 0, frame = "Wooden frame",   frameCount = 8,  refinedPlanks = 24,  planks = 96,  logs = 96,  stoneWallSegments = 6, limestoneBricks = 24 },
+        [2] = { materialIndex = 3, frame = "Teak frame",     frameCount = 20, refinedPlanks = 60,  planks = 240, logs = 240, stoneWallSegments = 6, limestoneBricks = 24 },
+        [3] = { materialIndex = 6, frame = "Mahogany frame", frameCount = 48, refinedPlanks = 144, planks = 576, logs = 576, stoneWallSegments = 6, limestoneBricks = 24 }
+    },
+    ["Ranger's Workroom"] = {
+        [1] = { materialIndex = 5, frame = "Acadia frame",   frameCount = 14, refinedPlanks = 42,  planks = 168, logs = 168, stoneWallSegments = 6, limestoneBricks = 24 },
+        [2] = { materialIndex = 6, frame = "Mahogany frame", frameCount = 24, refinedPlanks = 72,  planks = 288, logs = 288, stoneWallSegments = 6, limestoneBricks = 24 },
+        [3] = { materialIndex = 8, frame = "Magic frame",    frameCount = 42, refinedPlanks = 126, planks = 504, logs = 504, stoneWallSegments = 6, limestoneBricks = 24 }
+    },
+    ["Botanist's Workbench"] = {
+        [1] = { materialIndex = 5, frame = "Acadia frame", frameCount = 4,  refinedPlanks = 12, planks = 48,  logs = 48,  stoneWallSegments = 6, limestoneBricks = 24 },
+        [2] = { materialIndex = 7, frame = "Yew frame",    frameCount = 8,  refinedPlanks = 24, planks = 96,  logs = 96,  stoneWallSegments = 6, limestoneBricks = 24 },
+        [3] = { materialIndex = 9, frame = "Elder frame",  frameCount = 12, refinedPlanks = 36, planks = 144, logs = 144, stoneWallSegments = 6, limestoneBricks = 24 }
+    }
 }
 -- Database met GEBOUW-BOXEN (Area-systeem)
 Data.BuildingAreas  = {
@@ -509,6 +619,12 @@ Data.Interfaces = {
         { {736,0,-1,0}, {736,2,-1,0}, {736,5,-1,0}, {736,8,-1,0}, {736,18,-1,0} },
         { {736,0,-1,0}, {736,2,-1,0}, {736,5,-1,0}, {736,9,-1,0}, {736,20,-1,0} },
         { {736,0,-1,0}, {736,2,-1,0}, {736,5,-1,0}, {736,10,-1,0}, {736,22,-1,0} }
+    },
+    RefinedPlanks = {
+        MainId = 1371,
+        ComponentId = 22,
+        StartIndex = 45,
+        Step = 4
     },
     Furniture = {
         MainId = 1516,
