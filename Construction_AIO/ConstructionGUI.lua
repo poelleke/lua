@@ -9,7 +9,7 @@ local Data = require("Data.Data")
 --========================================================================--
 -- Variables
 --========================================================================--
-local Version = "1.1"
+local Version = "2.0"
 ConstructionGUI.open = true
 local startRequested = false
 local exitRequested = false
@@ -19,7 +19,8 @@ local hideBankPin = true
 local activityList = {
     "Construction Contracts",
     "Build Furniture",
-    "Make Planks"
+    "Fort Forinthry Construction",
+    "Construction Materials"
 }
 
 local plankTypes = {
@@ -34,6 +35,61 @@ local plankTypes = {
     "Magic plank",
     "Elder plank",
     "Eternal plank"
+}
+
+
+local constructionMaterialTypes = {
+    "Planks",
+    "Refined planks",
+    "Frames",
+    "Stone cutter"
+}
+
+local fortForinthryBuildings = {
+    "Workshop",
+    "Town Hall",
+    "Chapel",
+    "Command Centre",
+    "Kitchen",
+    "Guardhouse",
+    "Grove Cabin",
+    "Ranger's Workroom",
+    "Botanist's Workbench",
+    "Eternal reinforcement"
+}
+
+local fortForinthryTiers = {
+    "Tier 1",
+    "Tier 2",
+    "Tier 3"
+}
+
+local refinedPlankTypes = {
+    "Refined planks",
+    "Refined Oak planks",
+    "Refined Willow planks",
+    "Refined Teak planks",
+    "Refined Maple planks",
+    "Refined Acadia planks",
+    "Refined Mahogany planks",
+    "Refined Yew planks",
+    "Refined Magic planks",
+    "Refined Elder planks",
+    "Refined Eternal planks"
+}
+
+local frameTypes = {
+    "Wooden frame",
+    "Oak frame",
+    "Willow frame",
+    "Teak frame",
+    "Maple frame",
+    "Acadia frame",
+    "Mahogany frame",
+    "Yew frame",
+    "Magic frame",
+    "Elder frame",
+    "Eternal frame"
 }
 
 local furnitureModes = Data.Furniture.Modes
@@ -103,7 +159,7 @@ local player = {
 local function UpdatePlayerInformation()
 
     player.name = tostring(API.GetLocalPlayerName())
-    player.construction = API.GetSkillsTableSkill(23)
+    player.construction = API.GetSkillsTableSkill(44)
     player.xp = API.GetSkillXP("CONSTRUCTION")
 
 end
@@ -428,18 +484,31 @@ local function DrawBuildFurniture()
 
 end
 
-local function DrawMakePlanks()
+local function DrawFortForinthryConstruction()
 
     local changed
 
-    ImGui.Text("Plank Type")
+    Config.FortForinthryBuilding = Config.FortForinthryBuilding or 0
+    Config.FortForinthryTier = Config.FortForinthryTier or 0
+    Config.FortForinthryBuildFromScratch = Config.FortForinthryBuildFromScratch == true
 
+    if Config.FortForinthryBuilding < 0
+        or Config.FortForinthryBuilding >= #fortForinthryBuildings then
+        Config.FortForinthryBuilding = 0
+    end
+
+    if Config.FortForinthryTier < 0
+        or Config.FortForinthryTier >= #fortForinthryTiers then
+        Config.FortForinthryTier = 0
+    end
+
+    ImGui.Text("Building")
     ImGui.PushItemWidth(-1)
 
-    changed, Config.PlankType = ImGui.Combo(
-        "##PlankType",
-        Config.PlankType,
-        plankTypes
+    changed, Config.FortForinthryBuilding = ImGui.Combo(
+        "##FortForinthryBuilding",
+        Config.FortForinthryBuilding,
+        fortForinthryBuildings
     )
 
     ImGui.PopItemWidth()
@@ -447,6 +516,146 @@ local function DrawMakePlanks()
     if changed then
         Config.Save()
     end
+
+    -- Eternal reinforcement gebruikt geen tier-keuze.
+    local selectedBuilding = fortForinthryBuildings[Config.FortForinthryBuilding + 1]
+
+    if selectedBuilding ~= "Eternal reinforcement" then
+        ImGui.Dummy(0, 4)
+
+        ImGui.Text("Tier")
+        ImGui.PushItemWidth(-1)
+
+        changed, Config.FortForinthryTier = ImGui.Combo(
+            "##FortForinthryTier",
+            Config.FortForinthryTier,
+            fortForinthryTiers
+        )
+
+        ImGui.PopItemWidth()
+
+        if changed then
+            Config.Save()
+        end
+    end
+
+    ImGui.Dummy(0, 4)
+
+    changed, Config.FortForinthryBuildFromScratch = ImGui.Checkbox(
+        "Build from scratch",
+        Config.FortForinthryBuildFromScratch
+    )
+
+    if changed then
+        Config.Save()
+    end
+
+end
+
+local function DrawConstructionMaterials()
+
+    local changed
+
+    Config.ConstructionMaterialType = Config.ConstructionMaterialType or 0
+    Config.PlankType = Config.PlankType or 0
+    Config.RefinedPlankType = Config.RefinedPlankType or 0
+    Config.FrameType = Config.FrameType or 0
+    Config.PlanksAtFortForinthry = Config.PlanksAtFortForinthry == true
+    Config.LoadLastPreset = Config.LoadLastPreset == true
+
+    if Config.ConstructionMaterialType < 0
+        or Config.ConstructionMaterialType >= #constructionMaterialTypes then
+        Config.ConstructionMaterialType = 0
+    end
+
+    ImGui.Text("Material Type")
+    ImGui.PushItemWidth(-1)
+
+    changed, Config.ConstructionMaterialType = ImGui.Combo(
+        "##ConstructionMaterialType",
+        Config.ConstructionMaterialType,
+        constructionMaterialTypes
+    )
+
+    ImGui.PopItemWidth()
+
+    if changed then
+        Config.Save()
+    end
+
+    ImGui.Dummy(0, 4)
+
+    local selectedMaterial = constructionMaterialTypes[
+        Config.ConstructionMaterialType + 1
+    ]
+
+    if selectedMaterial == "Planks" then
+
+        ImGui.Text("Plank Type")
+        ImGui.PushItemWidth(-1)
+
+        changed, Config.PlankType = ImGui.Combo(
+            "##PlankType",
+            Config.PlankType,
+            plankTypes
+        )
+
+        ImGui.PopItemWidth()
+
+        if changed then
+            Config.Save()
+        end
+
+        changed, Config.PlanksAtFortForinthry = ImGui.Checkbox(
+            "Make planks at Fort Forinthry",
+            Config.PlanksAtFortForinthry
+        )
+
+        if changed then
+            Config.Save()
+        end
+
+    elseif selectedMaterial == "Refined planks" then
+
+        ImGui.Text("Refined Plank Type")
+        ImGui.PushItemWidth(-1)
+
+        changed, Config.RefinedPlankType = ImGui.Combo(
+            "##RefinedPlankType",
+            Config.RefinedPlankType,
+            refinedPlankTypes
+        )
+
+        ImGui.PopItemWidth()
+
+        if changed then
+            Config.Save()
+        end
+
+    elseif selectedMaterial == "Frames" then
+
+        ImGui.Text("Frame Type")
+        ImGui.PushItemWidth(-1)
+
+        changed, Config.FrameType = ImGui.Combo(
+            "##FrameType",
+            Config.FrameType,
+            frameTypes
+        )
+
+        ImGui.PopItemWidth()
+
+        if changed then
+            Config.Save()
+        end
+
+    elseif selectedMaterial == "Stone cutter" then
+
+        ImGui.Text("Stone cutter selected.")
+
+    end
+
+    ImGui.Dummy(0, 4)
 
     changed, Config.LoadLastPreset = ImGui.Checkbox(
         "Load last preset",
@@ -476,7 +685,10 @@ local function DrawActivitySettings()
         DrawBuildFurniture()
 
     elseif Config.ActivityIndex == 2 then
-        DrawMakePlanks()
+        DrawFortForinthryConstruction()
+
+    elseif Config.ActivityIndex == 3 then
+        DrawConstructionMaterials()
     end
 
     EndSection()
