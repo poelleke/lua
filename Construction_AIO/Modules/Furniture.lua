@@ -3,7 +3,7 @@
 --
 -- Build loop: open workbench, search, select, verify materials, press Space,
 -- then refill the plank box before loading the preset for the next batch.
--- Furniture storage deliberately follows in a later step.
+-- Furniture storage uses its direct "store items" object action.
 --========================================================================--
 
 local Furniture = {}
@@ -26,11 +26,8 @@ local STATE_VERIFY_MATERIALS = "VERIFY_MATERIALS"
 local STATE_CONSTRUCT = "CONSTRUCT"
 local STATE_WAIT_PROCESSING_START = "WAIT_PROCESSING_START"
 local STATE_WAIT_PROCESSING_FINISH = "WAIT_PROCESSING_FINISH"
-local STATE_STORAGE_OPEN = "STORAGE_OPEN"
-local STATE_STORAGE_WAIT_OPEN = "STORAGE_WAIT_OPEN"
 local STATE_STORAGE_STORE_ITEMS = "STORAGE_STORE_ITEMS"
-local STATE_STORAGE_CLOSE = "STORAGE_CLOSE"
-local STATE_STORAGE_WAIT_CLOSE = "STORAGE_WAIT_CLOSE"
+local STATE_STORAGE_WAIT_STORE = "STORAGE_WAIT_STORE"
 local STATE_BANK_LOAD_PRESET = "BANK_LOAD_PRESET"
 local STATE_BANK_WAIT_PRESET = "BANK_WAIT_PRESET"
 local STATE_BANK_CHECK_PLANK_BOX = "BANK_CHECK_PLANK_BOX"
@@ -51,9 +48,8 @@ local PROCESSING_START_TIMEOUT = 8.0
 local PRESET_SETTLE_DELAY = 2.5
 local BANK_OPEN_TIMEOUT = 8.0
 local PLANK_BOX_FILL_DELAY = 1.2
-local STORAGE_OPEN_SETTLE_DELAY = 3.0
-local STORAGE_STORE_SETTLE_DELAY = 1.0
-local STORAGE_CLOSE_SETTLE_DELAY = 0.7
+local STORAGE_STORE_SETTLE_DELAY = 1.5
+local STORAGE_MOVEMENT_START_TIMEOUT = 5.0
 local MAX_MATERIAL_BANK_ATTEMPTS = 2
 
 local running = false
@@ -63,9 +59,9 @@ local stateSince = 0
 local nextResultScan = 0
 local targetName = ""
 local configuredRecipe = nil
-local storageOpenedAt = nil
-local storageCloseAttempts = 0
 local materialBankAttempts = 0
+local storageMovementSeen = false
+local storageStoppedAt = nil
 
 local function Now()
     return os.clock()
@@ -82,10 +78,6 @@ end
 
 local function IsInterfaceOpen()
     return API.GetInterfaceOpenBySize(Data.Interfaces.Furniture.MainId)
-end
-
-local function IsStorageOpen()
-    return API.GetInterfaceOpenBySize(Data.Interfaces.Furniture.StorageId)
 end
 
 local function CopyPath(path)
@@ -260,6 +252,8 @@ function Furniture.Start()
     paused = false
     nextResultScan = 0
     materialBankAttempts = 0
+    storageMovementSeen = false
+    storageStoppedAt = nil
 
     API.logInfo("Furniture start: [" .. targetName .. "]")
 
@@ -475,7 +469,7 @@ function Furniture.Tick()
     if currentState == STATE_WAIT_PROCESSING_FINISH and not API.isProcessing() then
         if Config.FurnitureUseStorage then
             API.logInfo("Furniture build batch complete. Sending items to Furniture storage.")
-            SetState(STATE_STORAGE_OPEN)
+            SetState(STATE_STORAGE_STORE_ITEMS)
         else
             API.logInfo("Furniture build batch complete. Going to bank cycle.")
             SetState(STATE_BANK_CHECK_PLANK_BOX)
@@ -483,85 +477,55 @@ function Furniture.Tick()
         return
     end
 
-    if currentState == STATE_STORAGE_OPEN then
+    if currentState == STATE_STORAGE_STORE_ITEMS then
         if API.IsPlayerMoving_() then
             return
         end
 
-        API.logInfo("Furniture storage: opening.")
-        storageCloseAttempts = 0
+        API.logInfo("Furniture storage: storing items directly.")
         API.DoAction_Object1(
-            0x31,
-            API.OFF_ACT_GeneralObject_route0,
+            0x29,
+            API.OFF_ACT_GeneralObject_route1,
             { Data.Objects.FurnitureStorage },
             50
         )
-        storageOpenedAt = nil
-        SetState(STATE_STORAGE_WAIT_OPEN)
+        storageMovementSeen = false
+        storageStoppedAt = nil
+        SetState(STATE_STORAGE_WAIT_STORE)
         return
     end
 
-    if currentState == STATE_STORAGE_WAIT_OPEN then
-        if not IsStorageOpen() then
-            if now - stateSince > 20 then
-                Furniture.Stop("Furniture storage interface 1518 did not open.")
+    if currentState == STATE_STORAGE_WAIT_STORE then
+        if API.IsPlayerMoving_() then
+            storageMovementSeen = true
+            storageStoppedAt = nil
+            return
+        end
+
+        if storageMovementSeen then
+            if not storageStoppedAt then
+                storageStoppedAt = now
+                API.logInfo("Furniture storage: player reached storage; waiting for direct store action.")
+                return
             end
+
+            if now - storageStoppedAt < STORAGE_STORE_SETTLE_DELAY then
+                return
+            end
+        elseif now - stateSince < STORAGE_MOVEMENT_START_TIMEOUT then
+            -- The route can take a moment before the movement flag changes.
             return
-        end
+        else
+            API.logInfo("Furniture storage: no movement needed; allowing direct store action to finish.")
+            storageStoppedAt = storageStoppedAt or now
 
-        if not storageOpenedAt then
-            storageOpenedAt = now
-            API.logInfo("Furniture storage interface 1518 opened.")
-            return
-        end
-
-        if now - storageOpenedAt >= STORAGE_OPEN_SETTLE_DELAY then
-            SetState(STATE_STORAGE_STORE_ITEMS)
-        end
-        return
-    end
-
-    if currentState == STATE_STORAGE_STORE_ITEMS then
-        if not IsStorageOpen() then
-            Furniture.Stop("Furniture storage closed before items could be stored.")
-            return
-        end
-
-        API.logInfo("Furniture storage key: Space (store items).")
-        API.KeyboardPress32(0x20, 0)
-        SetState(STATE_STORAGE_CLOSE)
-        return
-    end
-
-    if currentState == STATE_STORAGE_CLOSE then
-        if now - stateSince < STORAGE_STORE_SETTLE_DELAY then
-            return
-        end
-
-        API.logInfo("Furniture storage key: Esc (close storage).")
-        API.KeyboardPress2(0x1B, 60, 100)
-        storageCloseAttempts = 1
-        SetState(STATE_STORAGE_WAIT_CLOSE)
-        return
-    end
-
-    if currentState == STATE_STORAGE_WAIT_CLOSE then
-        if not IsStorageOpen() and now - stateSince >= STORAGE_CLOSE_SETTLE_DELAY then
-            API.logInfo("Furniture storage: complete. Going to bank cycle.")
-            SetState(STATE_BANK_CHECK_PLANK_BOX)
-            return
-        end
-
-        if now - stateSince >= STORAGE_CLOSE_SETTLE_DELAY then
-            if storageCloseAttempts < 2 then
-                API.logInfo("Furniture storage remains open; sending a second Esc.")
-                API.KeyboardPress2(0x1B, 60, 100)
-                storageCloseAttempts = 2
-                SetState(STATE_STORAGE_WAIT_CLOSE)
-            else
-                Furniture.Stop("Furniture storage did not close after two Esc presses.")
+            if now - storageStoppedAt < STORAGE_STORE_SETTLE_DELAY then
+                return
             end
         end
+
+        API.logInfo("Furniture storage: direct store action complete. Going to bank cycle.")
+        SetState(STATE_BANK_CHECK_PLANK_BOX)
         return
     end
 
@@ -722,6 +686,8 @@ function Furniture.Stop(reason)
     paused = false
     currentState = nil
     materialBankAttempts = 0
+    storageMovementSeen = false
+    storageStoppedAt = nil
 end
 
 function Furniture.IsRunning()
