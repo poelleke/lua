@@ -228,8 +228,8 @@ function Functions.TryTravelMovementAbility(target)
         return false
     end
 
-    -- Na elke ability is de doeltegel opnieuw bepaald. Hervat nu de route
-    -- naar het oorspronkelijke loopdoel vanaf de actuele spelerpositie.
+    -- After each ability, the target tile is determined anew. Now resume the route.
+    -- towards the original walk target from the current player position.
     API.DoAction_Tile(WPOINT.new(target.x, target.y, target.z))
     return true
 
@@ -378,6 +378,122 @@ end
 function Functions.GetPlankAmount(ItemName)
     local _, _, total = Functions.GetPlankAmountDetails(ItemName)
     return total
+end
+
+-- Returns true only while the player is actually carrying a Plank box.
+-- Container 895 may keep stale contents after the box leaves inventory.
+function Functions.HasPlankBox()
+    return Inventory:InvItemcount(Data.Items.misc.plank_box) > 0
+end
+
+-- Returns the amount of a specific plank item currently stored in the carried Plank box.
+function Functions.GetPlankBoxAmount(ItemID)
+    if not Functions.HasPlankBox() then
+        return 0
+    end
+
+    local total = 0
+    local items = API.Container_Get_all(Data.Items.Containers.PlankBox)
+
+    if items then
+        for _, item in pairs(items) do
+            if item.item_id == ItemID then
+                total = total + item.item_stack
+            end
+        end
+    end
+
+    return total
+end
+
+-- Returns inventory amount, Plank box amount, and their combined total for an item id.
+function Functions.GetPlankItemAmountDetails(ItemID)
+    local inventoryAmount = Inventory:InvItemcount(ItemID)
+    local plankBoxAmount = Functions.GetPlankBoxAmount(ItemID)
+    return inventoryAmount, plankBoxAmount, inventoryAmount + plankBoxAmount
+end
+
+function Functions.GetRefinedPlankButtonIndex(MaterialIndex)
+    local interfaceData = Data.Interfaces.RefinedPlanks
+    return interfaceData.StartIndex + (MaterialIndex * interfaceData.Step)
+end
+
+function Functions.SelectRefinedPlankOption(MaterialIndex, MaterialName)
+    local interfaceData = Data.Interfaces.RefinedPlanks
+    local buttonIndex = Functions.GetRefinedPlankButtonIndex(MaterialIndex)
+
+    API.logInfo(string.format(
+        "Selecting refined plank from GUI choice: %s | Interface: %d,%d,%d",
+        MaterialName or tostring(MaterialIndex),
+        interfaceData.MainId,
+        interfaceData.ComponentId,
+        buttonIndex
+    ))
+
+    return API.DoAction_Interface(
+        0xffffffff,
+        0xffffffff,
+        1,
+        interfaceData.MainId,
+        interfaceData.ComponentId,
+        buttonIndex,
+        API.OFF_ACT_GeneralInterface_route
+    )
+end
+
+function Functions.FillPlankBoxFromBank(ItemID, timeout)
+    if not Functions.HasPlankBox() then
+        return false
+    end
+
+    API.DoAction_Bank_Inv(
+        Data.Items.misc.plank_box,
+        8,
+        API.OFF_ACT_GeneralInterface_route2
+    )
+
+    local capacity = Data.Items.Containers.PlankBoxCapacityPerType
+    return Functions.SleepUntil(function()
+        return Functions.GetPlankBoxAmount(ItemID) >= capacity
+    end, timeout or 6, "Plank box full")
+end
+
+
+-- Fills the free inventory slots with a specific bank item.
+-- Manual Construction banking deposits the inventory first, so the only
+-- possible occupied slot here is the carried Plank box.
+function Functions.FillInventoryFromBank(ItemID, timeout)
+    local hasPlankBox = Functions.HasPlankBox()
+    local freeSlots = hasPlankBox and 27 or 28
+    local bankAmount = Bank:GetItemAmount(ItemID)
+    local withdrawAmount = math.min(freeSlots, bankAmount)
+    local inventoryBefore = Inventory:InvItemcount(ItemID)
+
+    API.logInfo(string.format(
+        "FillInventoryFromBank | Item: %d | Bank: %d | Free slots: %d | Withdraw: %d | Inventory before: %d",
+        ItemID, bankAmount, freeSlots, withdrawAmount, inventoryBefore
+    ))
+
+    if withdrawAmount <= 0 then
+        return false, 0
+    end
+
+    if not Bank:Withdraw(ItemID, withdrawAmount) then
+        return false, 0
+    end
+
+    local expectedMinimum = inventoryBefore + withdrawAmount
+    local ok = Functions.SleepUntil(function()
+        return Inventory:InvItemcount(ItemID) >= expectedMinimum
+    end, timeout or 6, "inventory material withdrawal")
+
+    local inventoryAfter = Inventory:InvItemcount(ItemID)
+    API.logInfo(string.format(
+        "FillInventoryFromBank result | Item: %d | Inventory after: %d",
+        ItemID, inventoryAfter
+    ))
+
+    return ok, inventoryAfter
 end
 
 function Functions.ParseRequiredMaterials(Text)
